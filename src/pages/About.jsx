@@ -1,5 +1,6 @@
 import React from "react";
 import { FiUsers, FiClock, FiCpu, FiFileText, FiDollarSign, FiGlobe } from "react-icons/fi";
+import Faq from "../components/Faq"
 
 const ImpactCard = ({ title, description, Icon }) => (
   <div className="flex flex-col items-center justify-center bg-white rounded-2xl shadow-md border-2 border-gray-200 hover:scale-105 transition-transform duration-300 h-80 w-72 p-5 text-center">
@@ -46,17 +47,12 @@ const About = () => {
         </div>
       </section>
 
-      {/* How it Works Section */}
-      <section className="flex flex-col items-center justify-center bg-blue-200 py-20 px-5 sm:px-10 lg:px-20 rounded-b-2xl shadow-md gap-10">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold text-center">
-          How it Works
+      <div>
+        <h1 className="text-2xl font-semibold text-center pb-10">
+          Frequently Asked Questions
         </h1>
-        <video
-          src="/assets/howitworks.mp4"
-          controls
-          className="h-64 sm:h-80 md:h-96 w-full lg:w-3/4 rounded-lg shadow-md"
-        />
-      </section>
+        <Faq/>
+      </div>
 
       {/* Impact Section */}
       <section className="py-20 px-5 sm:px-10 lg:px-20 bg-gray-100">

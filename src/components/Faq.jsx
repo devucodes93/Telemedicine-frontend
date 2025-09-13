@@ -39,7 +39,58 @@ export default function Faq() {
     },
     {
       question: "Can I use it 24/7?",
-      answer: "Absolutely! Our doctors are available round the clock to serve you.",
+      answer:
+        "Absolutely! Our doctors are available round the clock to serve you.",
+    },
+    {
+      question: "Do I need the internet to use the app?",
+      answer:
+        "You can use many features offline, like accessing your digital health records. Video consultations require internet, but we optimize for low-bandwidth connections.",
+    },
+    {
+      question: "How do I know which doctors are available?",
+      answer:
+        "The app shows real-time doctor availability and their specialties. You can book appointments directly within the app.",
+    },
+    {
+      question: "Are the consultations free or paid?",
+      answer:
+        "Basic consultations are free, and some specialist consultations may have a small fee. The app clearly displays any charges before you confirm.",
+    },
+    {
+      question: "Can the app help me get medicines?",
+      answer:
+        "Yes, you can check the availability of medicines at nearby pharmacies and place orders if needed.",
+    },
+    {
+      question: "Will my health records be safe?",
+      answer:
+        "Absolutely. All your health records are stored securely and can be accessed offline. Only you and your authorized doctors can view them.",
+    },
+    {
+      question: "What if I don’t understand English?",
+      answer:
+        "The app supports multiple languages, including Punjabi and Hindi, to make it easy for everyone to use.",
+    },
+    {
+      question: "Can I use the app if I am not tech-savvy?",
+      answer:
+        "Yes! The app is designed to be simple and user-friendly, with clear instructions and voice guidance for easier navigation.",
+    },
+    {
+      question: "How quickly can I get a consultation?",
+      answer:
+        "Depending on doctor availability, you can get a consultation the same day, and emergency cases are prioritized.",
+    },
+    {
+      question: "Does the app work on basic smartphones?",
+      answer:
+        "Yes! We optimized the app to work smoothly on both smartphones and feature phones with Android support.",
+    },
+    {
+      question: "Can my family members access my health records?",
+      answer:
+        "Only with your permission. You can grant access to family members or caregivers safely through the app.",
     },
     {
       question: "Do I need to download any app?",
@@ -62,6 +113,7 @@ export default function Faq() {
         "Payments can be made securely via credit/debit cards, UPI, or other supported online payment methods.",
     },
   ];
+  
 
   return (
     <div className="max-w-4xl mx-auto mt-10 bg-white rounded-lg shadow-lg overflow-hidden">
