@@ -1,0 +1,32 @@
+.reports {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  margin-top: 30px;
+}
+.reports h3 {
+  margin-bottom: 20px;
+  color: #4c51bf;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.reportItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.reportItem:last-child { border-bottom: none; }
+.reportItem button {
+  background: linear-gradient(45deg, #60a5fa, #4c51bf);
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.reportItem button:hover { transform: scale(1.05); }

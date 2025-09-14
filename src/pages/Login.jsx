@@ -37,9 +37,15 @@ const Login = () => {
         // save user + token in localStorage
         localStorage.setItem("user", JSON.stringify(response.data.user));
         localStorage.setItem("token", response.data.token);
-
         alert("Login successful!");
-        navigate("/me"); // redirect to profile page
+        const role = response.data.user.role;
+        if (role === "patient") {
+          window.location.href = "/patient";
+        } else if (role === "Doctor") {
+          window.location.href = "/doctor";
+        } else {
+          window.location.reload();
+        }
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.msg || "Login failed");

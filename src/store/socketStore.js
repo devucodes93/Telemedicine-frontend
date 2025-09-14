@@ -1,0 +1,297 @@
+import { io } from "socket.io-client";
+import { create } from "zustand";
+
+const BASE_URL = "http://localhost:5000";
+
+const useSocketStore = create((set, get) => ({
+  socket: null,
+  isConnected: false,
+  roomId: null,
+  localVideo: null,
+  localVideoRef: { current: null },
+  remoteVideoRef: { current: null },
+  peerRef: { current: null },
+  loadingUser: false,
+  setRoomId: (id) => set({ roomId: id }),
+  setLocalVideo: (stream) => set({ localVideo: stream }),
+  setLocalVideoRef: (ref) => set({ localVideoRef: ref }),
+  setRemoteVideoRef: (ref) => set({ remoteVideoRef: ref }),
+  setConnected: (status) => set({ isConnected: status }),
+  connectSocket: () => {
+    if (get().socket?.connected) return;
+    console.log("came");
+    const socket = io(BASE_URL, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
+
+    socket.on("connect", () => {
+      console.log("✅ Socket connected with ID:", socket.id);
+      set({ socket });
+    });
+
+    socket.on("disconnect", () => {
+      console.log("❌ Socket disconnected");
+      set({ socket: null, playerSocketId: "" });
+    });
+
+    set({ socket });
+  },
+  disconnectSocket: () => {
+    const socket = get().socket;
+    if (!socket) return;
+
+    console.log("🔌 Disconnecting socket...");
+    socket.disconnect();
+    set({ socket: nu });
+  },
+  joinVideo: (roomId, doctorIdRaw) => {
+    const socket = get().socket;
+    const userRaw = localStorage.getItem("user");
+    if (!userRaw) {
+      console.error("❗ Cannot join room: User not logged in.");
+      return;
+    }
+    const user = JSON.parse(userRaw);
+    if (!socket || !socket.connected || !socket.id) {
+      console.error(
+        "❗ Cannot join room: Socket not connected or ID unavailable."
+      );
+      return;
+    }
+    let eventName, payload;
+    // Normalize role comparison for both 'Doctor' and 'doctor'
+    const isDoctor = String(user.role).toLowerCase() === "doctor";
+    if (isDoctor) {
+      eventName = "doctor-join-room";
+      payload = {
+        doctorId: user.id || user._id,
+        roomId,
+        socketId: socket.id,
+      };
+    } else {
+      console.log("patient joining room");
+      eventName = "patient-join-room";
+      payload = {
+        patientId: user.id || user._id,
+        doctorId: doctorIdRaw, // You may need to fetch this from booking context
+        roomId,
+        socketId: socket.id,
+      };
+    }
+    socket.emit(eventName, payload);
+    set({ roomId: roomId });
+    get().roomJoined();
+    console.log("🔗 Joining room:", roomId, payload);
+  },
+  roomJoined: () => {
+    const socket = get().socket;
+    if (!socket) return;
+
+    socket.on("room-joined", (data) => {
+      console.log("✅ Room joined:", data);
+      set({ roomId: data.roomId });
+    });
+  },
+  startCall: async () => {
+    const {
+      remoteVideoRef,
+      localVideoRef,
+      socket,
+      roomId,
+      setLocalVideo,
+      peerRef,
+    } = get();
+
+    console.log("[startCall] Attempting to get local media stream...");
+    let localStream;
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
+      console.log("[startCall] Local media stream acquired:", localStream);
+    } catch (err) {
+      console.error("[startCall] Error getting local media stream:", err);
+      return;
+    }
+
+    setLocalVideo(localStream);
+    if (localVideoRef?.current) {
+      localVideoRef.current.srcObject = localStream;
+      console.log("[startCall] Local video element srcObject set.");
+    } else {
+      console.warn("[startCall] Local video ref not available.");
+    }
+
+    console.log("[startCall] Creating RTCPeerConnection...");
+    const peerConnection = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    });
+
+    localStream.getTracks().forEach((track) => {
+      peerConnection.addTrack(track, localStream);
+      console.log(`[startCall] Added track to peerConnection:`, track);
+    });
+
+    peerRef.current = peerConnection;
+    console.log("[startCall] peerRef.current assigned.");
+
+    peerConnection.ontrack = (event) => {
+      const remoteStream = event.streams[0];
+      console.log(
+        "[startCall] ontrack event received. Remote stream:",
+        remoteStream
+      );
+
+      const tryAttach = () => {
+        const remoteVideo = get().remoteVideoRef;
+        set({ loadingUser: true });
+        if (remoteVideo?.current) {
+          if (remoteVideo.current.srcObject !== remoteStream) {
+            remoteVideo?.current.pause();
+            remoteVideo.current.srcObject = remoteStream;
+            console.log("[startCall] Remote video element srcObject set.");
+          }
+
+          remoteVideo.current.onloadedmetadata = () => {
+            setTimeout(() => {
+              set({ loadingUser: false });
+              remoteVideo.current.play().catch((err) => {
+                console.error("[startCall] Error playing remote video:", err);
+                set({ loadingUser: false });
+              });
+              console.log("[startCall] Remote video playback started.");
+            }, 500);
+          };
+        } else {
+          console.warn(
+            "[startCall] Remote video ref not available, retrying..."
+          );
+          setTimeout(tryAttach, 500);
+        }
+      };
+
+      tryAttach();
+    };
+
+    peerConnection.onicecandidate = (event) => {
+      console.log("working but not best-----------");
+      if (event.candidate) {
+        console.log("[startCall] Sending ICE candidate:", event.candidate);
+        const roomNo = localStorage.getItem("activeRoom") || roomId;
+        socket.emit("signal", {
+          roomId: roomNo,
+          data: { candidate: event.candidate },
+        });
+      } else {
+        console.log("[startCall] ICE candidate event but no candidate.");
+      }
+    };
+    peerConnection.oniceconnectionstatechange = () => {
+      console.log("[startCall] ICE State:", peerConnection.iceConnectionState);
+    };
+    peerConnection.onconnectionstatechange = () => {
+      console.log(
+        "[startCall] Connection State:",
+        peerConnection.connectionState
+      );
+    };
+    peerConnection.onnegotiationneeded = () => {
+      console.log("[startCall] Negotiation needed.");
+    };
+    peerConnection.ondatachannel = (event) => {
+      console.log("[startCall] Data channel event:", event);
+    };
+    console.log("[startCall] Peer connection setup complete.");
+  },
+  setupSignalListener: () => {
+    const { socket, peerRef, roomId } = get();
+
+    // ICE candidate queue for race condition
+    let iceCandidateQueue = [];
+    socket.on("signal", async (data) => {
+      const peer = peerRef.current;
+      if (!peer) {
+        console.warn("[signal] No peer connection available.");
+        return;
+      }
+      // Get roomId from store, URL, or localStorage
+      let effectiveRoomId = roomId;
+      if (!effectiveRoomId) {
+        const match = window.location.pathname.match(/\/call\/(\w+)/);
+        if (match && match[1]) {
+          effectiveRoomId = match[1];
+        }
+      }
+      if (!effectiveRoomId) {
+        effectiveRoomId = localStorage.getItem("activeRoom");
+      }
+      try {
+        if (data.offer) {
+          console.log("[signal] Received offer:", data.offer);
+          await peer.setRemoteDescription(
+            new RTCSessionDescription(data.offer)
+          );
+          // Add any queued ICE candidates
+          if (iceCandidateQueue.length > 0) {
+            for (const candidate of iceCandidateQueue) {
+              try {
+                await peer.addIceCandidate(new RTCIceCandidate(candidate));
+                console.log("[signal] Added queued ICE candidate:", candidate);
+              } catch (err) {
+                console.error(
+                  "[signal] Error adding queued ICE candidate:",
+                  err
+                );
+              }
+            }
+            iceCandidateQueue = [];
+          }
+          const answer = await peer.createAnswer();
+          console.log(answer, "answer here");
+          await peer.setLocalDescription(answer);
+          socket.emit("signal", { roomId: effectiveRoomId, data: { answer } });
+          console.log("[signal] Sent answer:", answer);
+        } else if (data.answer) {
+          console.log("[signal] Received answer:", data.answer);
+          await peer.setRemoteDescription(
+            new RTCSessionDescription(data.answer)
+          );
+          // Add any queued ICE candidates
+          if (iceCandidateQueue.length > 0) {
+            for (const candidate of iceCandidateQueue) {
+              try {
+                await peer.addIceCandidate(new RTCIceCandidate(candidate));
+                console.log("[signal] Added queued ICE candidate:", candidate);
+              } catch (err) {
+                console.error(
+                  "[signal] Error adding queued ICE candidate:",
+                  err
+                );
+              }
+            }
+            iceCandidateQueue = [];
+          }
+        } else if (data.candidate) {
+          console.log("[signal] Received ICE candidate:", data.candidate);
+          // Only add ICE candidate if remote description is set
+          if (peer.remoteDescription && peer.remoteDescription.type) {
+            await peer.addIceCandidate(new RTCIceCandidate(data.candidate));
+            console.log(
+              "[signal] Added ICE candidate immediately:",
+              data.candidate
+            );
+          } else {
+            iceCandidateQueue.push(data.candidate);
+            console.log("[signal] Queued ICE candidate:", data.candidate);
+          }
+        }
+      } catch (err) {
+        console.error("[signal] Error in signal handler:", err);
+      }
+    });
+  },
+}));
+
+export default useSocketStore;

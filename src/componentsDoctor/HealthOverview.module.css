@@ -1,0 +1,65 @@
+.healthOverview {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+.healthOverview h3 {
+  margin-bottom: 20px;
+  color: #4c51bf;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+.metric {
+  text-align: center;
+}
+.metric h4 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.circleProgress {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+}
+.circleProgress svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.background {
+  fill: none;
+  stroke: #e2e8f0;
+  stroke-width: 8;
+}
+.progress {
+  fill: none;
+  stroke: #4c51bf;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+.value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  font-weight: 500;
+  color: #2d3748;
+}
+.status.normal { color: #10b981; }
+.status.high { color: #ef4444; }
+.status.low { color: #f59e0b; }

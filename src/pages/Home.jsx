@@ -1,8 +1,49 @@
-import React from "react";
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Footer from "../components/Footer";
 import Faq from "../components/Faq";
+import BookDoctor from "../components/BookDoctor";
+import useSocketStore from "../store/socketStore";
 
-const Home = () => {
+const Home = ({ hideBooking }) => {
+  const [showBook, setShowBook] = useState(false);
+  const [hasBooking, setHasBooking] = useState(false);
+  const [bookingStatus, setBookingStatus] = useState("");
+  const [isDoctor, setIsDoctor] = useState(false);
+
+  React.useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || !user.id) return;
+    if (user.role === "Doctor") {
+      setIsDoctor(true);
+      return;
+    }
+    fetch(`http://localhost:5000/api/booking/all?patientId=${user.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        // If backend returns array of bookings
+        const bookings = Array.isArray(data.bookings)
+          ? data.bookings
+          : data.bookings
+          ? [data.bookings]
+          : [];
+        if (bookings.length === 0) {
+          setHasBooking(false);
+          setBookingStatus("");
+        } else if (bookings.length === 1) {
+          setHasBooking(true);
+          setBookingStatus(bookings[0].status);
+        } else if (bookings.length >= 2) {
+          setHasBooking(true);
+          setBookingStatus("multiple");
+        }
+      })
+      .catch(() => {
+        setHasBooking(false);
+        setBookingStatus("");
+      });
+  }, []);
+  const { t } = useTranslation();
   return (
     <div className="bg-white text-gray-700">
       {/* Hero Section */}
@@ -12,31 +53,107 @@ const Home = () => {
 
         {/* Hero content */}
         <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-10 lg:px-20 text-center sm:text-left flex flex-col gap-6">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-snug sm:leading-tight drop-shadow-lg">
-            Welcome to Our Telecure Platform
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-snug sm:leading-tight drop-shadow-lg break-words whitespace-normal">
+            {t("Welcome")}
           </h1>
-          <p className="text-white text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl max-w-full sm:max-w-2xl leading-relaxed sm:leading-loose drop-shadow-md">
-            Connecting you to quality healthcare from the comfort of your home.
-            Experience seamless virtual consultations with our expert medical
-            professionals. Your health, our priority. Join us today and take the
-            first step towards convenient and accessible healthcare.
+          <p className="text-white text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl max-w-full sm:max-w-2xl leading-relaxed sm:leading-loose drop-shadow-md break-words whitespace-normal">
+            {t("ModernHealthcare")}
           </p>
-          <button className="mt-4 sm:mt-6 bg-blue-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full hover:bg-blue-600 hover:scale-105 transition-transform duration-300 shadow-lg w-40 sm:w-44">
-            Get Started
-          </button>
+          {!hideBooking && !isDoctor && (
+            <>
+              {!hasBooking ? (
+                <>
+                  <button
+                    className="mt-4 sm:mt-6 bg-blue-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full hover:bg-blue-600 hover:scale-105 transition-transform duration-300 shadow-lg w-40 sm:w-44"
+                    onClick={() => setShowBook(true)}
+                  >
+                    {t("BookDoctor")}
+                  </button>
+                  {showBook && (
+                    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 relative">
+                        <button
+                          className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+                          onClick={() => setShowBook(false)}
+                        >
+                          &times;
+                        </button>
+                        <BookDoctor
+                          onBooked={() => {
+                            setShowBook(false);
+                            window.location.reload();
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : bookingStatus === "active" ||
+                bookingStatus === "pending" ||
+                bookingStatus === "accepted" ||
+                bookingStatus === "multiple" ? (
+                <button
+                  className="mt-4 sm:mt-6 bg-green-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full hover:bg-green-600 hover:scale-105 transition-transform duration-300 shadow-lg w-40 sm:w-44"
+                  onClick={() => (window.location.href = "/track-booking")}
+                >
+                  {t("TrackBooking")}
+                </button>
+              ) : bookingStatus === "cancelled" ? (
+                <>
+                  <button
+                    className="mt-4 sm:mt-6 bg-red-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full hover:bg-red-600 hover:scale-105 transition-transform duration-300 shadow-lg w-56 sm:w-60 font-bold"
+                    disabled
+                  >
+                    {t("BookingCancelled")}
+                  </button>
+                  <button
+                    className="mt-4 sm:mt-6 bg-blue-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full hover:bg-blue-600 hover:scale-105 transition-transform duration-300 shadow-lg w-40 sm:w-44"
+                    onClick={() => setShowBook(true)}
+                  >
+                    {t("BookDoctor")}
+                  </button>
+                  {showBook && (
+                    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 relative">
+                        <button
+                          className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+                          onClick={() => setShowBook(false)}
+                        >
+                          &times;
+                        </button>
+                        <BookDoctor
+                          onBooked={() => {
+                            setShowBook(false);
+                            window.location.reload();
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <button
+                  className="mt-4 sm:mt-6 bg-green-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full hover:bg-green-600 hover:scale-105 transition-transform duration-300 shadow-lg w-40 sm:w-44"
+                  onClick={() => (window.location.href = "/track-booking")}
+                >
+                  {t("TrackBooking")}
+                </button>
+              )}
+            </>
+          )}
         </div>
       </div>
 
       <section className="py-16 bg-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-6xl font-bold text-gray-700 mb-4">
-            Why Choose Telecure?
+          <h2 className="text-6xl font-bold text-gray-700 mb-4 break-words whitespace-normal">
+            {t("WhyChoose")}
           </h2>
-          <p className="text-xl text-gray-600 mb-12">
-            Experience modern healthcare designed for you
+          <p className="text-xl text-gray-600 mb-12 break-words whitespace-normal">
+            {t("ModernHealthcare")}
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
             {/* Feature 1: 24/7 Live Doctor Consultation */}
             <div className="bg-white p-8 rounded-lg shadow-xl hover:shadow-2xl duration-500  hover:scale-105 transition-transform ">
               <div className="text-blue-600 mb-6 flex justify-center">
@@ -55,12 +172,11 @@ const Home = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                24/7 Live Doctor Consultation
+              <h3 className="text-xl font-semibold text-gray-800 mb-3 break-words whitespace-normal">
+                {t("LiveDoctorConsultation")}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Connect with certified doctors anytime, anywhere for immediate
-                care.
+              <p className="text-gray-600 leading-relaxed break-words whitespace-normal">
+                {t("LiveDoctorConsultationDesc")}
               </p>
             </div>
 
@@ -93,12 +209,11 @@ const Home = () => {
                   </g>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                E-Prescriptions
+              <h3 className="text-xl font-semibold text-gray-800 mb-3 break-words whitespace-normal">
+                {t("EPrescriptions")}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Receive valid digital prescriptions sent directly to your
-                pharmacy.
+              <p className="text-gray-600 leading-relaxed break-words whitespace-normal">
+                {t("EPrescriptionsDesc")}
               </p>
             </div>
 
@@ -146,11 +261,11 @@ const Home = () => {
                   </g>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                AI-Symptom Checker
+              <h3 className="text-xl font-semibold text-gray-800 mb-3 break-words whitespace-normal">
+                {t("AISymptomChecker")}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Get instant, reliable health insights powered by AI.
+              <p className="text-gray-600 leading-relaxed break-words whitespace-normal">
+                {t("AISymptomCheckerDesc")}
               </p>
             </div>
             <div className="bg-white p-8 rounded-lg shadow-xl hover:shadow-2xl duration-500 hover:scale-105 transition-transform">
@@ -178,12 +293,11 @@ const Home = () => {
                   </g>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Convenience
+              <h3 className="text-xl font-semibold text-gray-800 mb-3 break-words whitespace-normal">
+                {t("Convenience")}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Connect to doctors within a click from the comfort of your
-                house.
+              <p className="text-gray-600 leading-relaxed break-words whitespace-normal">
+                {t("ConvenienceDesc")}
               </p>
             </div>
             <div className="bg-white p-8 rounded-lg shadow-xl hover:shadow-2xl duration-500 hover:scale-105 transition-transform">
@@ -218,12 +332,11 @@ const Home = () => {
                   </g>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Quick Support
+              <h3 className="text-xl font-semibold text-gray-800 mb-3 break-words whitespace-normal">
+                {t("QuickSupport")}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Call for help or get instant medical assistance at the time of
-                emergency within a click.
+              <p className="text-gray-600 leading-relaxed break-words whitespace-normal">
+                {t("QuickSupportDesc")}
               </p>
             </div>
             <div className="bg-white p-8 rounded-lg shadow-xl hover:shadow-2xl duration-500 hover:scale-105 transition-transform">
@@ -245,19 +358,20 @@ const Home = () => {
                   <path d="M27,3c0,-0.552 -0.448,-1 -1,-1l-20,0c-0.552,0 -1,0.448 -1,1l0,26c0,0.552 0.448,1 1,1l20,0c0.552,0 1,-0.448 1,-1l0,-26Zm-2,1l0,24l-18,0l0,-24l18,0Zm-9,10c-3.311,0 -6,2.689 -6,6c0,3.311 2.689,6 6,6c3.311,0 6,-2.689 6,-6c0,-3.311 -2.689,-6 -6,-6Zm-1,2.126c-1.724,0.445 -3,2.012 -3,3.874c0,2.208 1.792,4 4,4c1.862,0 3.429,-1.276 3.874,-3l-3.874,0c-0.552,0 -1,-0.448 -1,-1l0,-3.874Zm-2,-4.126l6,0c0.552,0 1,-0.448 1,-1c0,-0.552 -0.448,-1 -1,-1l-6,0c-0.552,0 -1,0.448 -1,1c0,0.552 0.448,1 1,1Zm-2,-4l10,0c0.552,0 1,-0.448 1,-1c0,-0.552 -0.448,-1 -1,-1l-10,0c-0.552,0 -1,0.448 -1,1c0,0.552 0.448,1 1,1Z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Report tracking
+              <h3 className="text-xl font-semibold text-gray-800 mb-3 break-words whitespace-normal">
+                {t("ReportTracking")}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Track your report on your device without having to go to the
-                hospital.
+              <p className="text-gray-600 leading-relaxed break-words whitespace-normal">
+                {t("ReportTrackingDesc")}
               </p>
             </div>
           </div>
         </div>
       </section>
       <div className="flex flex-col items-center justify-center mb-20 bg-blue-200 pt-30 rounded-b-2xl shadow-md">
-        <h1 className="text-5xl font-semibold">How it Works</h1>
+        <h1 className="text-5xl font-semibold break-words whitespace-normal">
+          {t("HowItWorks")}
+        </h1>
         {/* Start: 3-Step Process Summary */}
         <div className="w-full max-w-5xl mx-auto py-8 px-4 grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
           {/* Step 1: Find a Doctor */}
@@ -280,12 +394,11 @@ const Home = () => {
               </svg>
             </div>
             {/* Content */}
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Step 1: Find Your Doctor
+            <h3 className="text-xl font-semibold text-gray-800 mb-2 break-words whitespace-normal">
+              {t("Step1Title")}
             </h3>
-            <p className="text-gray-600 leading-relaxed">
-              Browse through our list of certified specialists or use the search
-              to find one that fits your needs.
+            <p className="text-gray-600 leading-relaxed break-words whitespace-normal">
+              {t("Step1Desc")}
             </p>
           </div>
 
@@ -309,12 +422,11 @@ const Home = () => {
               </svg>
             </div>
             {/* Content */}
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Step 2: Start Your Consultation
+            <h3 className="text-xl font-semibold text-gray-800 mb-2 break-words whitespace-normal">
+              {t("Step2Title")}
             </h3>
-            <p className="text-gray-600 leading-relaxed">
-              Choose an available time slot and connect with your doctor
-              instantly via a secure video call.
+            <p className="text-gray-600 leading-relaxed break-words whitespace-normal">
+              {t("Step2Desc")}
             </p>
           </div>
 
@@ -338,12 +450,11 @@ const Home = () => {
               </svg>
             </div>
             {/* Content */}
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Step 3: Get Your Prescription
+            <h3 className="text-xl font-semibold text-gray-800 mb-2 break-words whitespace-normal">
+              {t("Step3Title")}
             </h3>
-            <p className="text-gray-600 leading-relaxed">
-              Receive your diagnosis and get prescriptions sent directly to a
-              local pharmacy of your choice.
+            <p className="text-gray-600 leading-relaxed break-words whitespace-normal">
+              {t("Step3Desc")}
             </p>
           </div>
         </div>
@@ -359,12 +470,11 @@ const Home = () => {
         <div className="max-w-6xl mx-auto px-4">
           {/* Section Header */}
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 sm:text-4xl">
-              Everything You Need for Your Health
+            <h2 className="text-3xl font-bold text-gray-800 sm:text-4xl break-words whitespace-normal">
+              {t("EverythingYouNeed")}
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
-              From instant consultations to managing your health records, all in
-              one place.
+            <p className="mt-4 text-lg text-gray-600 break-words whitespace-normal">
+              {t("EverythingYouNeedDesc")}
             </p>
           </div>
 
@@ -389,12 +499,11 @@ const Home = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Video Consultations
+              <h3 className="text-xl font-semibold text-gray-800 mb-2 break-words whitespace-normal">
+                {t("VideoConsultations")}
               </h3>
-              <p className="text-gray-600">
-                Connect with certified doctors instantly through secure,
-                high-quality video calls from the comfort of your home.
+              <p className="text-gray-600 break-words whitespace-normal">
+                {t("VideoConsultationsDesc")}
               </p>
             </div>
 
@@ -417,12 +526,11 @@ const Home = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                E-Prescriptions
+              <h3 className="text-xl font-semibold text-gray-800 mb-2 break-words whitespace-normal">
+                {t("EPrescriptions")}
               </h3>
-              <p className="text-gray-600">
-                Receive digital prescriptions from your doctor directly in the
-                app, sent to a local pharmacy of your choice.
+              <p className="text-gray-600 break-words whitespace-normal">
+                {t("EPrescriptionsDesc2")}
               </p>
             </div>
 
@@ -445,13 +553,11 @@ const Home = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                AI Symptom Checker
+              <h3 className="text-xl font-semibold text-gray-800 mb-2 break-words whitespace-normal">
+                {t("AISymptomChecker")}
               </h3>
-              <p className="text-gray-600">
-                Unsure about your symptoms? Our intelligent AI helps you
-                understand potential conditions and guides you to the right
-                specialist.
+              <p className="text-gray-600 break-words whitespace-normal">
+                {t("AISymptomCheckerDesc2")}
               </p>
             </div>
 
@@ -474,12 +580,11 @@ const Home = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Buy Medicine
+              <h3 className="text-xl font-semibold text-gray-800 mb-2 break-words whitespace-normal">
+                {t("BuyMedicine")}
               </h3>
-              <p className="text-gray-600">
-                Order prescribed medicines and wellness products from trusted
-                partner pharmacies and get them delivered to your doorstep.
+              <p className="text-gray-600 break-words whitespace-normal">
+                {t("BuyMedicineDesc")}
               </p>
             </div>
 
@@ -502,13 +607,11 @@ const Home = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Track Reports
+              <h3 className="text-xl font-semibold text-gray-800 mb-2 break-words whitespace-normal">
+                {t("TrackReports")}
               </h3>
-              <p className="text-gray-600">
-                Securely store and access all your medical reports and
-                consultation history in one place, available anytime you need
-                it.
+              <p className="text-gray-600 break-words whitespace-normal">
+                {t("TrackReportsDesc")}
               </p>
             </div>
           </div>
@@ -518,20 +621,19 @@ const Home = () => {
       {/* Start: Call-to-Action Section */}
       <section className="bg-blue-600">
         <div className="max-w-4xl mx-auto text-center py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            <span className="block">Ready to take control of your health?</span>
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl break-words whitespace-normal">
+            <span className="block">{t("ReadyToTakeControl")}</span>
           </h2>
-          <p className="mt-4 text-lg leading-6 text-blue-100">
-            Join Telecure today and get access to quality healthcare, anytime
-            you need it.
+          <p className="mt-4 text-lg leading-6 text-blue-100 break-words whitespace-normal">
+            {t("JoinTelecure")}
           </p>
           <div className="mt-8 flex justify-center">
             <div className="inline-flex rounded-md shadow">
               <a
                 href="/signup"
-                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50"
+                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 break-words whitespace-normal"
               >
-                Get Started Now
+                {t("GetStartedNow")}
               </a>
             </div>
           </div>

@@ -1,0 +1,45 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  background: linear-gradient(45deg, #ffffff, #f1f5f9);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.userControls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.searchBar {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 15px;
+  border: 1px solid #e2e8f0;
+}
+.searchBar input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  width: 200px;
+}
+.language, .logout {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.language {
+  background: linear-gradient(45deg, #60a5fa, #4c51bf);
+}
+.logout {
+  background: linear-gradient(45deg, #ef4444, #dc2626);
+}

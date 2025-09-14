@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const Me = () => {
+const Me = ({ compact, showDropdown }) => {
   const [user, setUser] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   // Fetch user from backend
@@ -35,6 +36,41 @@ const Me = () => {
     localStorage.removeItem("token");
     navigate("/signup");
   };
+
+  if (compact && user) {
+    return (
+      <div className="relative inline-block text-left">
+        <img
+          src={user.avatar}
+          alt="avatar"
+          className="w-10 h-10 rounded-full border cursor-pointer"
+          onClick={() => setDropdownOpen((open) => !open)}
+        />
+        {showDropdown && dropdownOpen && (
+          <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
+            <button
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              onClick={() => navigate("/doctor-update")}
+            >
+              Profile Pending
+            </button>
+            <button
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              onClick={() => navigate("/me")}
+            >
+              Profile
+            </button>
+            <button
+              className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
