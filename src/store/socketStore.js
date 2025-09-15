@@ -126,7 +126,14 @@ const useSocketStore = create((set, get) => ({
 
     console.log("[startCall] Creating RTCPeerConnection...");
     const peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        {
+          urls: "turn:relay1.expressturn.com:3478",
+          username: "ef1dd7e0",
+          credential: "b1b2c3d4e5f6g7h8",
+        },
+      ],
     });
 
     localStream.getTracks().forEach((track) => {
@@ -176,7 +183,6 @@ const useSocketStore = create((set, get) => ({
     };
 
     peerConnection.onicecandidate = (event) => {
-      console.log("working but not best-----------");
       if (event.candidate) {
         console.log("[startCall] Sending ICE candidate:", event.candidate);
         const roomNo = localStorage.getItem("activeRoom") || roomId;
@@ -184,18 +190,43 @@ const useSocketStore = create((set, get) => ({
           roomId: roomNo,
           data: { candidate: event.candidate },
         });
-      } else {
-        console.log("[startCall] ICE candidate event but no candidate.");
       }
     };
     peerConnection.oniceconnectionstatechange = () => {
       console.log("[startCall] ICE State:", peerConnection.iceConnectionState);
+      if (
+        peerConnection.iceConnectionState === "disconnected" ||
+        peerConnection.iceConnectionState === "failed"
+      ) {
+        console.warn(
+          "[startCall] ICE connection lost. Attempting to restart ICE..."
+        );
+        if (typeof peerConnection.restartIce === "function") {
+          peerConnection.restartIce();
+          console.log("[startCall] Called restartIce().");
+        } else {
+          // Fallback: try to renegotiate
+          if (socket && roomId) {
+            socket.emit("signal", { roomId, data: { renegotiate: true } });
+            console.log("[startCall] Sent renegotiate signal.");
+          }
+        }
+      }
     };
     peerConnection.onconnectionstatechange = () => {
       console.log(
         "[startCall] Connection State:",
         peerConnection.connectionState
       );
+      if (
+        peerConnection.connectionState === "disconnected" ||
+        peerConnection.connectionState === "failed"
+      ) {
+        console.warn(
+          "[startCall] Peer connection lost. Attempting to reconnect..."
+        );
+        // Optionally, you could trigger a full restart or reload here
+      }
     };
     peerConnection.onnegotiationneeded = () => {
       console.log("[startCall] Negotiation needed.");
@@ -228,54 +259,88 @@ const useSocketStore = create((set, get) => ({
         effectiveRoomId = localStorage.getItem("activeRoom");
       }
       try {
+        console.log(`[signal] Current signalingState: ${peer.signalingState}`);
         if (data.offer) {
           console.log("[signal] Received offer:", data.offer);
-          await peer.setRemoteDescription(
-            new RTCSessionDescription(data.offer)
-          );
-          // Add any queued ICE candidates
-          if (iceCandidateQueue.length > 0) {
-            for (const candidate of iceCandidateQueue) {
-              try {
-                await peer.addIceCandidate(new RTCIceCandidate(candidate));
-                console.log("[signal] Added queued ICE candidate:", candidate);
-              } catch (err) {
-                console.error(
-                  "[signal] Error adding queued ICE candidate:",
-                  err
-                );
+          if (
+            peer.signalingState === "stable" ||
+            peer.signalingState === "have-remote-offer"
+          ) {
+            await peer.setRemoteDescription(
+              new RTCSessionDescription(data.offer)
+            );
+            console.log(
+              `[signal] setRemoteDescription(offer) called in signalingState: ${peer.signalingState}`
+            );
+            // Add any queued ICE candidates
+            if (iceCandidateQueue.length > 0) {
+              for (const candidate of iceCandidateQueue) {
+                try {
+                  await peer.addIceCandidate(new RTCIceCandidate(candidate));
+                  console.log(
+                    "[signal] Added queued ICE candidate:",
+                    candidate
+                  );
+                } catch (err) {
+                  console.error(
+                    "[signal] Error adding queued ICE candidate:",
+                    err
+                  );
+                }
               }
+              iceCandidateQueue = [];
             }
-            iceCandidateQueue = [];
+            const answer = await peer.createAnswer();
+            console.log(answer, "answer here");
+            await peer.setLocalDescription(answer);
+            socket.emit("signal", {
+              roomId: effectiveRoomId,
+              data: { answer },
+            });
+            console.log("[signal] Sent answer:", answer);
+          } else {
+            console.warn(
+              `[signal] Skipped setRemoteDescription(offer) due to signalingState: ${peer.signalingState}`
+            );
           }
-          const answer = await peer.createAnswer();
-          console.log(answer, "answer here");
-          await peer.setLocalDescription(answer);
-          socket.emit("signal", { roomId: effectiveRoomId, data: { answer } });
-          console.log("[signal] Sent answer:", answer);
         } else if (data.answer) {
           console.log("[signal] Received answer:", data.answer);
-          await peer.setRemoteDescription(
-            new RTCSessionDescription(data.answer)
-          );
-          // Add any queued ICE candidates
-          if (iceCandidateQueue.length > 0) {
-            for (const candidate of iceCandidateQueue) {
-              try {
-                await peer.addIceCandidate(new RTCIceCandidate(candidate));
-                console.log("[signal] Added queued ICE candidate:", candidate);
-              } catch (err) {
-                console.error(
-                  "[signal] Error adding queued ICE candidate:",
-                  err
-                );
+          if (peer.signalingState === "have-local-offer") {
+            await peer.setRemoteDescription(
+              new RTCSessionDescription(data.answer)
+            );
+            console.log(
+              `[signal] setRemoteDescription(answer) called in signalingState: ${peer.signalingState}`
+            );
+            // Add any queued ICE candidates
+            if (iceCandidateQueue.length > 0) {
+              for (const candidate of iceCandidateQueue) {
+                try {
+                  await peer.addIceCandidate(new RTCIceCandidate(candidate));
+                  console.log(
+                    "[signal] Added queued ICE candidate:",
+                    candidate
+                  );
+                } catch (err) {
+                  console.error(
+                    "[signal] Error adding queued ICE candidate:",
+                    err
+                  );
+                }
               }
+              iceCandidateQueue = [];
             }
-            iceCandidateQueue = [];
+          } else {
+            console.warn(
+              `[signal] Skipped setRemoteDescription(answer) due to signalingState: ${peer.signalingState}`
+            );
+            // Log duplicate/late answer for diagnostics
+            console.warn(
+              `[signal] Duplicate or late answer received. This may cause remote video instability.`
+            );
           }
         } else if (data.candidate) {
           console.log("[signal] Received ICE candidate:", data.candidate);
-          // Only add ICE candidate if remote description is set
           if (peer.remoteDescription && peer.remoteDescription.type) {
             await peer.addIceCandidate(new RTCIceCandidate(data.candidate));
             console.log(

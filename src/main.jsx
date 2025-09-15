@@ -4,11 +4,17 @@ import "./output.css";
 import App from "./App.jsx";
 import "./i18n";
 import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider } from "./context/ThemeContext";
+import { TranslationProvider } from "./context/TranslationContext";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <ThemeProvider>
+        <TranslationProvider>
+          <App />
+        </TranslationProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </StrictMode>
 );

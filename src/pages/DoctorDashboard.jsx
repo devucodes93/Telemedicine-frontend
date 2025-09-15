@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "../context/TranslationContext";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../componentsDoctor/Sidebar";
 import Header from "../componentsDoctor/Header";
@@ -13,16 +14,26 @@ import styles from "../componentsDoctor/Cards.module.css";
 import useSocketStore from "../store/socketStore";
 
 const DoctorDashboard = () => {
+  const { t } = useTranslation();
+  // Theme state and effect
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
   const { joinVideo } = useSocketStore();
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem("user"));
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     if (user?.role === "Doctor") {
-      fetch(`http://localhost:5000/api/booking/doctor?doctorId=${user.id}`)
+      fetch(`http://localhost:5000/api/booking/doctor?doctorId=${user.id || user._id}`)
         .then((res) => res.json())
         .then((data) => {
           const allAppointments = data.appointments || [];
@@ -54,26 +65,102 @@ const DoctorDashboard = () => {
     document.title = "Doctor Dashboard - TeleMedico";
     console.log(appointments);
   }, [appointments]);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || user.role !== "Doctor") {
+      return;
+    } else {
+      //setting status false when user in /doctor dashboard
+      fetch("http://localhost:5000/api/booking/doctor-live", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          doctorId: user.id,
+          status: false,
+          bookingId:
+            upcomingAppointments.length > 0
+              ? upcomingAppointments[0]._id
+              : upcomingAppointments.map((item) => item._id)[0] || null,
+        }),
+      });
+    }
+    return () => {
+      //setting status as offline when user closes the tab or browser
+      user.role == "Doctor" &&
+        fetch("http://localhost:5000/api/booking/doctor-live", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            doctorId: user.id,
+            status: false,
+            bookingId:
+              upcomingAppointments.length > 0
+                ? upcomingAppointments[0]._id
+                : upcomingAppointments.map((item) => item._id)[0] || null,
+          }),
+        });
+    };
+  }, [upcomingAppointments]);
   return (
     <div
-      className="flex flex-col md:flex-row min-h-screen bg-gray-50"
+      className={`flex flex-col md:flex-row min-h-screen relative ${
+        theme === "dark" ? "bg-gray-900" : "bg-gray-50"
+      }`}
       style={{ minHeight: "100vh" }}
     >
-      <div className="w-full md:w-64 bg-white border-r border-gray-200">
+      {/* Theme Toggle Button */}
+      <button
+        className="fixed bottom-6 right-6 z-50 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-full p-2 shadow-lg border border-gray-300 dark:border-gray-700 text-xs hover:bg-gray-300 dark:hover:bg-gray-700 transition"
+        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        aria-label="Toggle theme"
+      >
+        {theme === "dark" ? "🌙" : "☀️"}
+      </button>
+      {/* Sidebar Slide-out */}
+      <div
+        className={`fixed md:static top-0 left-0 h-full z-30 transition-transform duration-300 bg-white border-r border-gray-200 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:w-64 w-64`}
+        style={{
+          boxShadow: sidebarOpen ? "2px 0 8px rgba(0,0,0,0.05)" : "none",
+        }}
+      >
         <Sidebar />
       </div>
-      <div className="flex-1 flex flex-col p-2 sm:p-4 md:p-8 gap-4">
+      {/* Sidebar Toggle Button */}
+      <button
+        className="md:hidden fixed top-4 left-4 z-40 bg-blue-600 text-white rounded-full p-2 shadow-lg focus:outline-none"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+      >
+        {sidebarOpen ? (
+          <span>&#10005;</span> // X icon
+        ) : (
+          <span>&#9776;</span> // Hamburger icon
+        )}
+      </button>
+      <div
+        className={`flex-1 flex flex-col p-2 sm:p-4 md:p-8 gap-4 transition-all duration-300 ${
+          sidebarOpen ? "md:ml-64" : ""
+        } ${
+          theme === "dark"
+            ? "bg-gray-900 text-gray-100"
+            : "bg-gray-50 text-gray-900"
+        }`}
+        style={{ minHeight: "100vh" }}
+      >
         <Header />
         {/* Upcoming Appointments Section */}
         {user?.role === "Doctor" && (
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-2 text-blue-700">
-              Upcoming Appointments
+              {t("upcomingAppointments")}
             </h2>
             {loading ? (
-              <div>Loading appointments...</div>
+              <div>{t("loadingAppointments")}</div>
             ) : upcomingAppointments.length === 0 ? (
-              <div>No upcoming appointments.</div>
+              <div>{t("noUpcomingAppointments")}</div>
             ) : (
               <ul className="space-y-3">
                 {upcomingAppointments.map((appointment) => (
@@ -92,22 +179,24 @@ const DoctorDashboard = () => {
                         )}
                         <div>
                           <div>
-                            <strong>Patient Name:</strong>{" "}
+                            <strong>{t("patientName")}:</strong>{" "}
                             {appointment?.patientName || appointment.patientId}
                           </div>
                           <div>
-                            <strong>Email:</strong> {appointment.patientEmail}
+                            <strong>{t("email")}:</strong>{" "}
+                            {appointment.patientEmail}
                           </div>
                           <div>
-                            <strong>Phone:</strong> {appointment.patientPhone}
+                            <strong>{t("phone")}:</strong>{" "}
+                            {appointment.patientPhone}
                           </div>
                         </div>
                       </div>
                       <div>
-                        <strong>Date:</strong> {appointment.date}
+                        <strong>{t("date")}:</strong> {appointment.date}
                       </div>
                       <div>
-                        <strong>Time:</strong> {appointment.reservedTime}
+                        <strong>{t("time")}:</strong> {appointment.reservedTime}
                       </div>
                     </div>
                     <button
@@ -117,7 +206,7 @@ const DoctorDashboard = () => {
                       }}
                       className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 font-semibold"
                     >
-                      Join
+                      {t("join")}
                     </button>
                   </li>
                 ))}
@@ -126,16 +215,16 @@ const DoctorDashboard = () => {
           </div>
         )}
         {/* ...existing dashboard... */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Overview />
           <HealthOverview />
           <Cards />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <PatientHistory />
           <HealthReports />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Messages />
           <Payments />
         </div>

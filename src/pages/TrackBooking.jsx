@@ -57,7 +57,7 @@ const TrackBooking = () => {
         {booking.reservedTime && (
           <div>
             <strong>Meeting Link:</strong>{" "}
-            {booking.VideoUrl ? (
+            {booking.VideoUrl && booking.doctorCameOnline ? (
               <button
                 onClick={() => {
                   joinVideo(booking.bookingId, booking.doctorId);
@@ -68,7 +68,7 @@ const TrackBooking = () => {
                 Join Meeting
               </button>
             ) : (
-              "Not provided yet"
+              "doctor not joined yet"
             )}
           </div>
         )}

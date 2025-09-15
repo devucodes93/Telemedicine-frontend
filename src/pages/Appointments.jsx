@@ -13,7 +13,7 @@ const Appointments = () => {
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
-  const [fee, setFee] = useState(0);
+  const [fee, setFee] = useState("");
   const { t } = useTranslation();
   useEffect(() => {
     if (user?.role === "Doctor") {
@@ -33,9 +33,9 @@ const Appointments = () => {
         {t("AllAppointments")}
       </h1>
       {loading ? (
-        <div>{t("LoadingAppointments")}</div>
+        <div className="mb-4">{t("LoadingAppointments")}</div>
       ) : appointments.length === 0 ? (
-        <div>{t("NoAppointmentsFound")}</div>
+        <div className="mb-4">{t("NoAppointmentsFound")}</div>
       ) : (
         <ul className="space-y-4">
           {appointments.map((appointment) => (
@@ -92,7 +92,10 @@ const Appointments = () => {
                   className="fixed inset-0 z-50 flex items-center justify-center animate-fadeIn"
                   style={{ background: "rgba(255,255,255,0.5)" }}
                 >
-                  <div className="backdrop-blur-lg bg-white/80 border border-gray-200 rounded-3xl shadow-2xl p-8 w-full max-w-md relative flex flex-col items-center animate-slideUp transition-all duration-300">
+                  <div
+                    className="backdrop-blur-lg bg-white/80 border border-gray-200 rounded-xl shadow-2xl p-1 sm:p-2 w-full max-w-[95vw] sm:max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg relative flex flex-col items-center animate-slideUp transition-all duration-300"
+                    style={{ width: "100%", maxWidth: "420px" }}
+                  >
                     <button
                       className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-3xl font-extrabold focus:outline-none bg-white/80 rounded-full w-10 h-10 flex items-center justify-center shadow-lg border border-gray-300"
                       onClick={() => setShowModal(false)}
@@ -184,6 +187,23 @@ const Appointments = () => {
                             window.location.reload();
                           }}
                         >
+                          {/* Fee Label at the beginning */}
+                          <label
+                            htmlFor="fee-input"
+                            className="block mb-1 text-sm font-medium text-gray-700 w-full text-left"
+                          >
+                            {t("Fee")} ₹
+                          </label>
+                          <input
+                            id="fee-input"
+                            type="number"
+                            value={fee}
+                            onChange={(e) => setFee(Number(e.target.value))}
+                            placeholder={t("EnterFee")}
+                            className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                            required
+                            min={0}
+                          />
                           {/* Time Picker */}
                           <div className="w-full mb-2">
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -213,21 +233,10 @@ const Appointments = () => {
                             </LocalizationProvider>
                           </div>
 
-                          {/* Fee Input */}
-                          <input
-                            type="number"
-                            value={fee}
-                            onChange={(e) => setFee(Number(e.target.value))}
-                            placeholder={t("EnterFee")}
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                            required
-                            min={0}
-                          />
-
                           {/* Submit Button */}
                           <button
                             type="submit"
-                            className={`px-6 py-3 rounded-2xl font-bold text-lg transition-all duration-200 shadow-lg w-full 
+                            className={`px-3 py-2 rounded-xl font-bold text-base transition-all duration-200 shadow w-full 
       ${
         actionLoading || !selectedTime || fee <= 0
           ? "bg-gray-400 text-gray-200 cursor-not-allowed"

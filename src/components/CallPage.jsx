@@ -215,35 +215,58 @@ const CallPage = () => {
       const peer = peerRef.current;
       if (!peer) return;
       if (data.offer) {
-        await peer.setRemoteDescription(new RTCSessionDescription(data.offer));
-        // Add any queued ICE candidates
-        if (iceCandidateQueue.length > 0) {
-          for (const candidate of iceCandidateQueue) {
-            try {
-              await peer.addIceCandidate(new RTCIceCandidate(candidate));
-              console.log("Added queued ICE candidate", candidate);
-            } catch (err) {
-              console.error("Error adding queued ICE candidate", err);
+        // Only set remote offer if signalingState is stable or have-remote-offer
+        if (
+          peer.signalingState === "stable" ||
+          peer.signalingState === "have-remote-offer"
+        ) {
+          await peer.setRemoteDescription(
+            new RTCSessionDescription(data.offer)
+          );
+          // Add any queued ICE candidates
+          if (iceCandidateQueue.length > 0) {
+            for (const candidate of iceCandidateQueue) {
+              try {
+                await peer.addIceCandidate(new RTCIceCandidate(candidate));
+                console.log("Added queued ICE candidate", candidate);
+              } catch (err) {
+                console.error("Error adding queued ICE candidate", err);
+              }
             }
+            iceCandidateQueue = [];
           }
-          iceCandidateQueue = [];
+          const answer = await peer.createAnswer();
+          await peer.setLocalDescription(answer);
+          socket.emit("signal", { roomId: roomId, data: { answer } });
+        } else {
+          console.warn(
+            "Skipped setRemoteDescription(offer) due to signalingState:",
+            peer.signalingState
+          );
         }
-        const answer = await peer.createAnswer();
-        await peer.setLocalDescription(answer);
-        socket.emit("signal", { roomId: roomId, data: { answer } });
       } else if (data.answer) {
-        await peer.setRemoteDescription(new RTCSessionDescription(data.answer));
-        // Add any queued ICE candidates
-        if (iceCandidateQueue.length > 0) {
-          for (const candidate of iceCandidateQueue) {
-            try {
-              await peer.addIceCandidate(new RTCIceCandidate(candidate));
-              console.log("Added queued ICE candidate", candidate);
-            } catch (err) {
-              console.error("Error adding queued ICE candidate", err);
+        // Only set remote answer if signalingState is have-local-offer
+        if (peer.signalingState === "have-local-offer") {
+          await peer.setRemoteDescription(
+            new RTCSessionDescription(data.answer)
+          );
+          // Add any queued ICE candidates
+          if (iceCandidateQueue.length > 0) {
+            for (const candidate of iceCandidateQueue) {
+              try {
+                await peer.addIceCandidate(new RTCIceCandidate(candidate));
+                console.log("Added queued ICE candidate", candidate);
+              } catch (err) {
+                console.error("Error adding queued ICE candidate", err);
+              }
             }
+            iceCandidateQueue = [];
           }
-          iceCandidateQueue = [];
+        } else {
+          console.warn(
+            "Skipped setRemoteDescription(answer) due to signalingState:",
+            peer.signalingState
+          );
         }
       } else if (data.candidate) {
         try {
@@ -408,6 +431,38 @@ const CallPage = () => {
     }
   };
 
+  useEffect(() => {
+    //setting status false when user in /doctor dashboard
+
+    const userFromLocal = localStorage.getItem("user");
+    const user = userFromLocal ? JSON.parse(userFromLocal) : null;
+    if (user && user.role !== "Doctor") {
+      return;
+    } else {
+      fetch("http://localhost:5000/api/booking/doctor-live", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          doctorId: user.id,
+          status: true,
+          bookingId: roomId,
+        }),
+      });
+    }
+    return () => {
+      //setting status as offline when user closes the tab or browser
+      user.role === "Doctor" &&
+        fetch("http://localhost:5000/api/booking/doctor-live", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            doctorId: user.id,
+            status: false,
+            bookingId: roomId,
+          }),
+        });
+    };
+  }, []);
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       {redirecting && (
