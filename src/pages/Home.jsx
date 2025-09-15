@@ -641,7 +641,7 @@ const Home = ({ hideBooking }) => {
       </section>
 
       {/* Footer Section */}
-      <footer className="bg-blue-500 text-white text-center mt-16">
+      <footer className="bg-blue-500 text-white text-center">
         <Footer />
         <p className="mt-4 text-sm sm:text-base">
           &copy; {new Date().getFullYear()} Telecure. All rights reserved.

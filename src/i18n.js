@@ -59,6 +59,33 @@ const resources = {
       JoinTelecure:
         "Join Telecure today and get access to quality healthcare, anytime you need it.",
       GetStartedNow: "Get Started Now",
+      
+  OurPurpose: "Bridging Distances, Delivering Care",
+  PurposeText: "In a country as vast as India, timely access to quality healthcare remains a significant challenge, often hindered by distance, time, and cost. As a team of passionate technologists, we chose this problem because we believe in the power of technology to create a more equitable healthcare system. Our purpose is to build a seamless, secure, and user-friendly platform that connects patients with qualified doctors, ensuring that expert medical advice is just a click away for everyone, everywhere.",
+  
+  OurCoreBeliefs: "Our Guiding Principles",
+  OurMission: "Our Mission",
+  MissionText: "To leverage cutting-edge technology to provide instant, affordable, and high-quality virtual healthcare consultations, breaking down the barriers of geography and time for every patient.",
+  OurVision: "Our Vision",
+  VisionText: "To create a future where every Indian has equitable access to premier healthcare services from the comfort of their home, leading to healthier communities and a stronger nation.",
+  
+  MeetTheTeam: "Meet the Team",
+  FrontendDeveloper: "Frontend Developer",
+  BackendDeveloper: "Backend Developer",
+  UIDesigner: "UI/UX Designer",
+  
+  WhoWeHelp: "Solving for Real People",
+  PersonaTitle: "A Story for {{name}}",
+  PriyaPersonaStory: "As a busy software developer in Bengaluru, Priya can't afford to lose half a day for a doctor's visit. When she noticed a sudden skin rash, our platform allowed her to connect with a top dermatologist between meetings, getting a diagnosis and prescription in under 15 minutes.",
+  RohanPersonaStory: "Rohan lives in a Tier-2 city and manages his elderly parents' health. For his father's regular diabetes follow-ups, traveling to a specialist was a recurring challenge. Our service enables his parents to consult with an endocrinologist from their home, ensuring consistent care and peace of mind for Rohan.",
+
+  OurGoals: "Our Vision for the Future",
+  TargetConsultations: "Consultations in Year One",
+  TargetSatisfaction: "Patient Satisfaction Rate",
+  TargetWaitTime: "Average Wait Time",
+
+  FAQ: "Frequently Asked Questions"
+
     },
   },
   hi: {
