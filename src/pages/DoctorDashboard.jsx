@@ -33,7 +33,11 @@ const DoctorDashboard = () => {
 
   useEffect(() => {
     if (user?.role === "Doctor") {
-      fetch(`http://localhost:5000/api/booking/doctor?doctorId=${user.id || user._id}`)
+      fetch(
+        `http://localhost:5000/api/booking/doctor?doctorId=${
+          user.id || user._id
+        }`
+      )
         .then((res) => res.json())
         .then((data) => {
           const allAppointments = data.appointments || [];

@@ -18,6 +18,7 @@ import Appointments from "./pages/Appointments";
 import CallPage from "./components/CallPage";
 import useSocketStore from "./store/socketStore";
 import CallPageLoad from "./pages/CallPage";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const App = () => {
   const { connectSocket } = useSocketStore();
@@ -145,6 +146,8 @@ const App = () => {
         <Route path="/call" element={<CallPageLoad />} />
         <Route path="/call/:id" element={<CallPage />} />
         <Route path="/call/:id/active" element={<CallPage />} />
+
+        <Route path="/admin/review-applications" element={<AdminDashboard />} />
         {/* Removed erroneous React.lazy route for /call/:id */}
       </Routes>
     </div>
