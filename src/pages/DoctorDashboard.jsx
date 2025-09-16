@@ -15,7 +15,10 @@ import useSocketStore from "../store/socketStore";
 
 const DoctorDashboard = () => {
   const { t } = useTranslation();
-  // Theme state and effect
+  const { joinVideo } = useSocketStore();
+  const navigate = useNavigate();
+
+  // Theme state
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light"
   );
@@ -23,22 +26,23 @@ const DoctorDashboard = () => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     localStorage.setItem("theme", theme);
   }, [theme]);
-  const { joinVideo } = useSocketStore();
-  const navigate = useNavigate();
+
   const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const user = JSON.parse(localStorage.getItem("user"));
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  // Fetch appointments for the doctor
   useEffect(() => {
     if (user?.role === "Doctor") {
-      fetch(`http://localhost:5000/api/booking/doctor?doctorId=${user.id || user._id}`)
+      fetch(`http://localhost:5000/api/booking/doctor?doctorId=${user.id}`)
         .then((res) => res.json())
         .then((data) => {
           const allAppointments = data.appointments || [];
           setAppointments(allAppointments);
-          // Filter upcoming appointments based on current date and time
+
           const now = new Date();
           const upcoming = allAppointments.filter((appointment) => {
             if (
@@ -47,61 +51,59 @@ const DoctorDashboard = () => {
               !appointment.date
             )
               return false;
-            // Combine date and reservedTime to get appointment datetime
+
             const dateStr = appointment.date;
             const timeStr = appointment.reservedTime;
-            // Try to parse date and time
             const dateTime = new Date(`${dateStr} ${timeStr}`);
             return dateTime > now;
           });
+
           setUpcomingAppointments(upcoming);
           setLoading(false);
         })
         .catch(() => setLoading(false));
     }
-  }, []);
+  }, [user?.id, user?.role]);
 
+  // Page title + debug log
   useEffect(() => {
     document.title = "Doctor Dashboard - TeleMedico";
     console.log(appointments);
+    setUpcomingAppointments(appointments);
   }, [appointments]);
 
+  // Set doctor live/offline status
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || user.role !== "Doctor") {
-      return;
-    } else {
-      //setting status false when user in /doctor dashboard
+    if (!user || user.role !== "Doctor") return;
+
+    const bookingId = upcomingAppointments[0]?._id || null;
+    console.log("bookingId", bookingId);
+
+    // when doctor enters dashboard
+    fetch("http://localhost:5000/api/booking/doctor-live", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        doctorId: user.id,
+        status: false,
+        bookingId,
+      }),
+    });
+
+    // cleanup (when closing)
+    return () => {
       fetch("http://localhost:5000/api/booking/doctor-live", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           doctorId: user.id,
           status: false,
-          bookingId:
-            upcomingAppointments.length > 0
-              ? upcomingAppointments[0]._id
-              : upcomingAppointments.map((item) => item._id)[0] || null,
+          bookingId,
         }),
       });
-    }
-    return () => {
-      //setting status as offline when user closes the tab or browser
-      user.role == "Doctor" &&
-        fetch("http://localhost:5000/api/booking/doctor-live", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            doctorId: user.id,
-            status: false,
-            bookingId:
-              upcomingAppointments.length > 0
-                ? upcomingAppointments[0]._id
-                : upcomingAppointments.map((item) => item._id)[0] || null,
-          }),
-        });
     };
-  }, [upcomingAppointments]);
+  }, [user, upcomingAppointments]);
+
   return (
     <div
       className={`flex flex-col md:flex-row min-h-screen relative ${
@@ -117,7 +119,8 @@ const DoctorDashboard = () => {
       >
         {theme === "dark" ? "🌙" : "☀️"}
       </button>
-      {/* Sidebar Slide-out */}
+
+      {/* Sidebar */}
       <div
         className={`fixed md:static top-0 left-0 h-full z-30 transition-transform duration-300 bg-white border-r border-gray-200 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -128,18 +131,17 @@ const DoctorDashboard = () => {
       >
         <Sidebar />
       </div>
+
       {/* Sidebar Toggle Button */}
       <button
         className="md:hidden fixed top-4 left-4 z-40 bg-blue-600 text-white rounded-full p-2 shadow-lg focus:outline-none"
         onClick={() => setSidebarOpen(!sidebarOpen)}
         aria-label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
       >
-        {sidebarOpen ? (
-          <span>&#10005;</span> // X icon
-        ) : (
-          <span>&#9776;</span> // Hamburger icon
-        )}
+        {sidebarOpen ? <span>&#10005;</span> : <span>&#9776;</span>}
       </button>
+
+      {/* Main Content */}
       <div
         className={`flex-1 flex flex-col p-2 sm:p-4 md:p-8 gap-4 transition-all duration-300 ${
           sidebarOpen ? "md:ml-64" : ""
@@ -151,7 +153,8 @@ const DoctorDashboard = () => {
         style={{ minHeight: "100vh" }}
       >
         <Header />
-        {/* Upcoming Appointments Section */}
+
+        {/* Upcoming Appointments */}
         {user?.role === "Doctor" && (
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-2 text-blue-700">
@@ -214,7 +217,8 @@ const DoctorDashboard = () => {
             )}
           </div>
         )}
-        {/* ...existing dashboard... */}
+
+        {/* Dashboard Sections */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Overview />
           <HealthOverview />

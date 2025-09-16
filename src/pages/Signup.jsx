@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { FiEye, FiEyeOff, FiUpload, FiUser, FiMail, FiPhone, FiLock } from "react-icons/fi";
+import {
+  FiEye,
+  FiEyeOff,
+  FiUpload,
+  FiUser,
+  FiMail,
+  FiPhone,
+  FiLock,
+} from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
@@ -81,11 +89,11 @@ const Signup = () => {
       });
       setSelectedFile(null);
       setPreviewUrl("");
-      navigate("/login");
+      navigate("/me");
       localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.token);
     } catch (err) {
-      console.error(err);
+      console.error("Error", err);
       alert(err.response?.data?.msg || "Signup failed");
       navigate("/signup");
     } finally {
@@ -148,7 +156,9 @@ const Signup = () => {
               }`}
             />
             {errors.username && (
-              <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.username}</p>
+              <p className="text-red-500 text-xs sm:text-sm mt-1">
+                {errors.username}
+              </p>
             )}
           </div>
 
@@ -168,7 +178,9 @@ const Signup = () => {
               }`}
             />
             {errors.email && (
-              <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.email}</p>
+              <p className="text-red-500 text-xs sm:text-sm mt-1">
+                {errors.email}
+              </p>
             )}
           </div>
 
@@ -188,7 +200,9 @@ const Signup = () => {
               }`}
             />
             {errors.phoneNumber && (
-              <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.phoneNumber}</p>
+              <p className="text-red-500 text-xs sm:text-sm mt-1">
+                {errors.phoneNumber}
+              </p>
             )}
           </div>
 
@@ -219,13 +233,17 @@ const Signup = () => {
               )}
             </button>
             {errors.password && (
-              <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.password}</p>
+              <p className="text-red-500 text-xs sm:text-sm mt-1">
+                {errors.password}
+              </p>
             )}
           </div>
 
           {/* Role */}
           <div>
-            <label className="block text-sm sm:text-base font-medium text-gray-700">Role</label>
+            <label className="block text-sm sm:text-base font-medium text-gray-700">
+              Role
+            </label>
             <select
               name="role"
               value={formData.role}
@@ -265,7 +283,10 @@ const Signup = () => {
 
         <p className="text-xs sm:text-sm text-center text-gray-600 mt-4">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 font-semibold hover:underline">
+          <Link
+            to="/login"
+            className="text-blue-600 font-semibold hover:underline"
+          >
             Login
           </Link>
         </p>

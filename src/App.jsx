@@ -18,6 +18,7 @@ import Appointments from "./pages/Appointments";
 import CallPage from "./components/CallPage";
 import useSocketStore from "./store/socketStore";
 import CallPageLoad from "./pages/CallPage";
+import PatientOption from "./components/PatientOption";
 
 const App = () => {
   const { connectSocket } = useSocketStore();
@@ -122,6 +123,7 @@ const App = () => {
         <Route path="/auth-success" element={<AuthSuccess />} />
         <Route path="/doctor-update" element={<DoctorUpdate />} />
         <Route path="/patient-update" element={<PatientUpdate />} />
+        <Route path="/patient-option" element={<PatientOption />} />
         {/* Role-based route: /patient renders Home only for patient */}
         <Route
           path="/patient"
