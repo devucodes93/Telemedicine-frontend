@@ -21,7 +21,12 @@ const Signup = () => {
     phoneNumber: "",
     password: "",
     role: "patient",
+    specialization: "",
+    experience: "",
+    fee: "",
   });
+  const [certificateFile, setCertificateFile] = useState(null);
+  const [certificatePreview, setCertificatePreview] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -31,6 +36,9 @@ const Signup = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "role") {
+      localStorage.setItem("signupRole", value);
+    }
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -40,6 +48,15 @@ const Signup = () => {
       setSelectedFile(file);
       const reader = new FileReader();
       reader.onload = () => setPreviewUrl(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+  const handleCertificateChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setCertificateFile(file);
+      const reader = new FileReader();
+      reader.onload = () => setCertificatePreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -65,19 +82,63 @@ const Signup = () => {
 
     setLoading(true);
     try {
-      const dataToSend = new FormData();
-      dataToSend.append("username", formData.username);
-      dataToSend.append("email", formData.email);
-      dataToSend.append("phoneNumber", formData.phoneNumber);
-      dataToSend.append("password", formData.password);
-      dataToSend.append("role", formData.role);
-      if (selectedFile) dataToSend.append("avatar", selectedFile);
+      const role = localStorage.getItem("signupRole") || formData.role;
 
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/signup",
-        dataToSend,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      let response;
+
+      if (role === "Doctor") {
+        // Convert avatar and certificate to base64
+        const getBase64 = (file) => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        };
+
+        const avatarBase64 = selectedFile ? await getBase64(selectedFile) : "";
+        const certificateBase64 = certificateFile
+          ? await getBase64(certificateFile)
+          : "";
+
+        const payload = {
+          username: formData.username,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber,
+          password: formData.password,
+          role: "Doctor",
+          specialization: formData.specialization,
+          experience: formData.experience,
+          fee: formData.fee,
+          avatar: avatarBase64,
+          certification: certificateBase64,
+        };
+
+        response = await axios.post(
+          "http://localhost:5000/api/auth/doctor-apply",
+          payload
+        );
+      } else {
+        // Patient — send with FormData
+        const form = new FormData();
+        form.append("username", formData.username);
+        form.append("email", formData.email);
+        form.append("phoneNumber", formData.phoneNumber);
+        form.append("password", formData.password);
+        form.append("role", "patient");
+        if (selectedFile) form.append("avatar", selectedFile);
+
+        response = await axios.post(
+          "http://localhost:5000/api/auth/signup",
+          form,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+      }
 
       alert(response.data.msg || "Signup successful!");
       setFormData({
@@ -86,23 +147,44 @@ const Signup = () => {
         phoneNumber: "",
         password: "",
         role: "patient",
+        specialization: "",
+        experience: "",
+        fee: "",
       });
       setSelectedFile(null);
       setPreviewUrl("");
+<<<<<<< HEAD
       navigate("/me");
       localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.token);
+=======
+      setCertificateFile(null);
+      setCertificatePreview("");
+      navigate("/login");
+>>>>>>> 629627631805bd070d8eb729f0825a3364f568fb
     } catch (err) {
       console.error("Error", err);
       alert(err.response?.data?.msg || "Signup failed");
-      navigate("/signup");
     } finally {
       setLoading(false);
     }
   };
 
+  const [showGoogleRoleModal, setShowGoogleRoleModal] = useState(false);
+  const [googleRole, setGoogleRole] = useState("");
+
   const handleGoogleSignup = () => {
-    window.open("http://localhost:5000/auth/google", "_self");
+    setShowGoogleRoleModal(true);
+  };
+
+  const handleGoogleRoleSelect = (role) => {
+    setGoogleRole(role);
+    if (role === "Doctor") {
+      setTimeout(() => setShowGoogleRoleModal(false), 2000);
+    } else {
+      window.open("http://localhost:5000/auth/google", "_self");
+      setShowGoogleRoleModal(false);
+    }
   };
 
   return (
@@ -255,6 +337,79 @@ const Signup = () => {
             </select>
           </div>
 
+          {/* Doctor-specific fields */}
+          {formData.role === "Doctor" && (
+            <>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="specialization"
+                  value={formData.specialization}
+                  onChange={handleChange}
+                  placeholder="Specialization"
+                  className="w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 transition-all mb-2"
+                />
+              </div>
+              <div className="relative">
+                <input
+                  type="number"
+                  name="experience"
+                  value={formData.experience}
+                  onChange={handleChange}
+                  placeholder="Experience (years)"
+                  className="w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 transition-all mb-2"
+                  min={0}
+                />
+              </div>
+              <div className="relative">
+                <input
+                  type="number"
+                  name="fee"
+                  value={formData.fee}
+                  onChange={handleChange}
+                  placeholder="Consultation Fee"
+                  className="w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 transition-all mb-2"
+                  min={0}
+                />
+              </div>
+              {/* Certificate Upload */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Upload MBBS Certificate / Identity
+                </label>
+                <div className="relative inline-block w-full">
+                  <div className="w-full h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 hover:border-purple-500 transition-colors cursor-pointer">
+                    {certificatePreview ? (
+                      <img
+                        src={certificatePreview}
+                        alt="Certificate Preview"
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <FiUpload className="w-8 h-8 text-gray-400" />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={handleCertificateChange}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Accepted: JPG, PNG, PDF
+                  </p>
+                </div>
+                <div className="mt-2">
+                  <span className="block text-xs text-yellow-700 bg-yellow-100 rounded px-2 py-1 font-semibold">
+                    Warning: Your certificate and personal data are used only
+                    for verification and will never be misused. We respect your
+                    privacy.
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Submit */}
           <button
             type="submit"
@@ -273,6 +428,7 @@ const Signup = () => {
         </div>
 
         {/* Google Signup */}
+
         <button
           onClick={handleGoogleSignup}
           className="flex items-center justify-center w-full py-2 sm:py-3 mt-2 space-x-2 font-semibold text-gray-700 bg-gray-100 border rounded-lg hover:bg-gray-200"
@@ -280,6 +436,43 @@ const Signup = () => {
           <FcGoogle size={24} />
           <span className="text-sm sm:text-base">Sign up with Google</span>
         </button>
+
+        {/* Google Role Modal */}
+        {showGoogleRoleModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+            <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xs text-center">
+              <h2 className="text-lg font-bold mb-4">
+                Are you registering as a Doctor or Patient?
+              </h2>
+              <div className="flex gap-4 justify-center mb-4">
+                <button
+                  className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700"
+                  onClick={() => handleGoogleRoleSelect("Patient")}
+                >
+                  Patient
+                </button>
+                <button
+                  className="px-4 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700"
+                  onClick={() => handleGoogleRoleSelect("Doctor")}
+                >
+                  Doctor
+                </button>
+              </div>
+              {googleRole === "Doctor" && (
+                <div className="text-red-600 font-semibold mt-2">
+                  Google signup is not allowed for doctors. Please use the
+                  regular signup form.
+                </div>
+              )}
+              <button
+                className="mt-4 text-gray-500 hover:text-gray-700 text-sm underline"
+                onClick={() => setShowGoogleRoleModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         <p className="text-xs sm:text-sm text-center text-gray-600 mt-4">
           Already have an account?{" "}
