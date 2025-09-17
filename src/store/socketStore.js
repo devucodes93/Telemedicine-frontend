@@ -26,7 +26,7 @@ const useSocketStore = create((set, get) => ({
     });
 
     socket.on("connect", () => {
-      console.log("✅ Socket connected with ID:", socket.id);
+      console.log("✅ Socket connected with ID:.....", socket.id);
       set({ socket });
     });
 
