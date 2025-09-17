@@ -4,6 +4,7 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import socket from "../socket";
 
 const Api = axios.create({ baseURL: "http://localhost:5000/api" });
 
@@ -17,17 +18,27 @@ const PatientOption = () => {
     doctorId: "",
     latitude: "",
     longitude: "",
+    emergencyCode:
+      Date.now().toString(36) + Math.random().toString(36).substring(2),
     option: "General Health Conditions",
   });
 
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
   };
 
   const inputVariants = {
-    focus: { scale: 1.02, borderColor: "#10b981", transition: { duration: 0.3 } },
+    focus: {
+      scale: 1.02,
+      borderColor: "#10b981",
+      transition: { duration: 0.3 },
+    },
   };
 
   const buttonVariants = {
@@ -135,6 +146,9 @@ const PatientOption = () => {
           autoClose: 3000,
         }
       );
+      socket.emit("new-emergency", {
+        ...formData,
+      });
       setFormData({
         patientId: LocalpatientId || "",
         doctorId: "",
@@ -142,7 +156,7 @@ const PatientOption = () => {
         longitude: formData.longitude,
         option: "General Health Conditions",
       });
-      navigate("/");
+      navigate("/Waiting");
     } catch (err) {
       toast.error(
         <div className="flex items-center">
@@ -176,10 +190,17 @@ const PatientOption = () => {
         >
           Send Emergency
         </motion.h1>
-        <motion.form onSubmit={handleSubmit} className="space-y-5" variants={containerVariants}>
+        <motion.form
+          onSubmit={handleSubmit}
+          className="space-y-5"
+          variants={containerVariants}
+        >
           {/* Patient ID */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="patientId">
+            <label
+              className="block text-sm font-semibold text-gray-700 mb-1"
+              htmlFor="patientId"
+            >
               Patient ID
             </label>
             <motion.input
@@ -198,7 +219,10 @@ const PatientOption = () => {
 
           {/* Emergency Type */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="option">
+            <label
+              className="block text-sm font-semibold text-gray-700 mb-1"
+              htmlFor="option"
+            >
               Emergency Type
             </label>
             <motion.select

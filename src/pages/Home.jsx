@@ -26,9 +26,9 @@ const Home = ({ hideBooking }) => {
       }
     }
 
-    if (!user || !user.id) return;
+    // if (!user || !user.id) return;
 
-    if (user.role === "Doctor") {
+    if (user?.role === "Doctor") {
       setIsDoctor(true);
       return;
     }
