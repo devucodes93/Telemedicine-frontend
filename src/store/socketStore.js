@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import { create } from "zustand";
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "https://telemedicine-backend-2.onrender.com/";
 
 const useSocketStore = create((set, get) => ({
   socket: null,
