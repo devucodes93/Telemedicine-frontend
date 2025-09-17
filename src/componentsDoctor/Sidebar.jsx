@@ -2,7 +2,7 @@ import React from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../context/TranslationContext";
-import styles from "./Sidebar.module.css";
+import { motion } from "framer-motion";
 import {
   FaHome,
   FaCalendarAlt,
@@ -15,6 +15,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const { language, setLanguage, t } = useTranslation();
+
   // Language options
   const languageOptions = [
     { code: "en", label: "English" },
@@ -31,111 +32,93 @@ const Sidebar = () => {
     { code: "as", label: "Assamese" },
     { code: "ur", label: "Urdu" },
   ];
+
   const handleLanguageChange = (e) => {
     const lang = e.target.value;
     setLanguage(lang);
     localStorage.setItem("siteLanguage", lang);
     window.location.reload();
   };
+
+  // Animation variants
+  const sidebarVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -10 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.5 } },
+    hover: { scale: 1.05, transition: { duration: 0.3 } },
+  };
+
+  const selectVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
   return (
-    <div
-      className={styles.sidebar}
-      style={{
-        background: theme === "dark" ? "#1f2937" : "#fff", // Tailwind gray-800 and white
-        color: theme === "dark" ? "#f3f4f6" : "#111827", // Tailwind gray-100 and gray-900
-      }}
+    <motion.div
+      className={`w-64 h-screen fixed p-5 shadow-lg ${
+        theme === "dark"
+          ? "bg-gray-800 text-gray-100"
+          : "bg-gradient-to-b from-emerald-50 to-green-50 text-gray-900"
+      } transition-all duration-300`}
+      variants={sidebarVariants}
+      initial="hidden"
+      animate="visible"
     >
       <div
-        className="py-6 px-4 text-center border-b"
-        style={{ borderColor: theme === "dark" ? "#374151" : "#e5e7eb" }} // Tailwind gray-700 and gray-200
+        className={`py-6 px-4 text-center border-b ${
+          theme === "dark" ? "border-gray-700" : "border-emerald-200"
+        }`}
       >
         <span
-          className="text-2xl font-bold tracking-wide"
-          style={{ color: theme === "dark" ? "#60a5fa" : "#2563eb" }} // Tailwind blue-400 and blue-700
+          className={`text-2xl font-bold tracking-wide ${
+            theme === "dark" ? "text-emerald-400" : "text-emerald-600"
+          }`}
         >
           {t("doctorDashboard")}
         </span>
       </div>
       <ul className="mt-6 space-y-2">
-        <li
-          className="flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer"
-          style={{
-            background: "transparent",
-            color: theme === "dark" ? "#f3f4f6" : "#111827",
-          }}
-          onClick={() => navigate("/doctor")}
-          onMouseOver={(e) =>
-            (e.currentTarget.style.background =
-              theme === "dark" ? "#1e293b" : "#eff6ff")
-          }
-          onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
-        >
-          <FaHome /> <span>Home</span>
-        </li>
-        <li
-          className="flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer"
-          style={{
-            background: "transparent",
-            color: theme === "dark" ? "#f3f4f6" : "#111827",
-          }}
-          onClick={() => navigate("/appointments")}
-          onMouseOver={(e) =>
-            (e.currentTarget.style.background =
-              theme === "dark" ? "#1e293b" : "#eff6ff")
-          }
-          onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
-        >
-          <FaCalendarAlt /> <span>Appointments</span>
-        </li>
-        <li
-          className="flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer"
-          style={{
-            background: "transparent",
-            color: theme === "dark" ? "#f3f4f6" : "#111827",
-          }}
-          onMouseOver={(e) =>
-            (e.currentTarget.style.background =
-              theme === "dark" ? "#1e293b" : "#eff6ff")
-          }
-          onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
-        >
-          <FaFileMedical /> <span>Health Records</span>
-        </li>
-        <li
-          className="flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer"
-          style={{
-            background: "transparent",
-            color: theme === "dark" ? "#f3f4f6" : "#111827",
-          }}
-          onMouseOver={(e) =>
-            (e.currentTarget.style.background =
-              theme === "dark" ? "#1e293b" : "#eff6ff")
-          }
-          onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
-        >
-          <FaPrescriptionBottle /> <span>Pharmacy</span>
-        </li>
-        <li
-          className="flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer"
-          style={{
-            background: "transparent",
-            color: theme === "dark" ? "#f3f4f6" : "#111827",
-          }}
-          onMouseOver={(e) =>
-            (e.currentTarget.style.background =
-              theme === "dark" ? "#1e293b" : "#eff6ff")
-          }
-          onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
-        >
-          <FaHeadset /> <span>Support</span>
-        </li>
+        {[
+          { icon: <FaHome />, label: "Home", path: "/doctor" },
+          { icon: <FaCalendarAlt />, label: "Appointments", path: "/appointments" },
+          { icon: <FaFileMedical />, label: "Health Records", path: "#" },
+          { icon: <FaPrescriptionBottle />, label: "Pharmacy", path: "#" },
+          { icon: <FaHeadset />, label: "Support", path: "#" },
+        ].map((item, idx) => (
+          <motion.li
+            key={idx}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer ${
+              theme === "dark"
+                ? "hover:bg-gray-700 text-gray-100"
+                : "hover:bg-emerald-100 text-gray-900"
+            } transition-all duration-300`}
+            variants={itemVariants}
+            initial="hidden"
+            animate="visible"
+            whileHover="hover"
+            onClick={() => item.path !== "#" && navigate(item.path)}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </motion.li>
+        ))}
       </ul>
       {/* Language dropdown at bottom */}
-      <div className="mt-8 px-4">
+      <motion.div
+        className="mt-8 px-4"
+        variants={selectVariants}
+        initial="hidden"
+        animate="visible"
+      >
         <label
           htmlFor="sidebar-language-select"
-          className="block mb-2 text-sm font-semibold"
-          style={{ color: theme === "dark" ? "#60a5fa" : "#2563eb" }} // Tailwind blue-400 and blue-700
+          className={`block mb-2 text-sm font-semibold ${
+            theme === "dark" ? "text-emerald-400" : "text-emerald-600"
+          }`}
         >
           {t("changeLanguage")}
         </label>
@@ -143,12 +126,11 @@ const Sidebar = () => {
           id="sidebar-language-select"
           value={language}
           onChange={handleLanguageChange}
-          className="w-full px-2 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500"
-          style={{
-            background: theme === "dark" ? "#1f2937" : "#fff",
-            color: theme === "dark" ? "#f3f4f6" : "#111827",
-            borderColor: theme === "dark" ? "#374151" : "#d1d5db", // Tailwind gray-700 and gray-300
-          }}
+          className={`w-full px-2 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all duration-300 ${
+            theme === "dark"
+              ? "bg-gray-800 text-gray-100 border-gray-700"
+              : "bg-white text-gray-900 border-emerald-200"
+          }`}
         >
           {languageOptions.map((opt) => (
             <option key={opt.code} value={opt.code}>
@@ -156,8 +138,8 @@ const Sidebar = () => {
             </option>
           ))}
         </select>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

@@ -10,7 +10,6 @@ import PatientHistory from "../componentsDoctor/PatientHistory";
 import HealthReports from "../componentsDoctor/HealthReports";
 import Messages from "../componentsDoctor/Messages";
 import Payments from "../componentsDoctor/Payments";
-import styles from "../componentsDoctor/Cards.module.css";
 import useSocketStore from "../store/socketStore";
 
 const DoctorDashboard = () => {
@@ -37,15 +36,12 @@ const DoctorDashboard = () => {
   // Fetch appointments for the doctor
   useEffect(() => {
     if (user?.role === "Doctor") {
-<<<<<<< HEAD
       fetch(`http://localhost:5000/api/booking/doctor?doctorId=${user.id}`)
-=======
       fetch(
         `http://localhost:5000/api/booking/doctor?doctorId=${
           user.id || user._id
         }`
       )
->>>>>>> 629627631805bd070d8eb729f0825a3364f568fb
         .then((res) => res.json())
         .then((data) => {
           const allAppointments = data.appointments || [];

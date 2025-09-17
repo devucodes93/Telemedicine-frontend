@@ -2,15 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Login = () => {
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -18,27 +17,42 @@ const Login = () => {
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [adminError, setAdminError] = useState("");
+  const [requests, setRequests] = useState([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+  const [error, setError] = useState("");
 
-  // handle inputs
+  // Fetch doctor applications
+  const fetchRequests = async () => {
+    setLoadingRequests(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/doctor-applications");
+      const data = await res.json();
+      setRequests(data.requests || []);
+    } catch (err) {
+      setError("Failed to fetch doctor applications");
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrorMsg(""); // clear error on typing
+    setErrorMsg(""); // Clear error on typing
   };
 
-  // handle submit
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        formData
-      );
-
+      const response = await axios.post("http://localhost:5000/api/auth/login", formData);
       if (response.data.success) {
-        // save user + token in localStorage
         localStorage.setItem("user", JSON.stringify(response.data.user));
         localStorage.setItem("token", response.data.token);
         alert("Login successful!");
@@ -58,43 +72,59 @@ const Login = () => {
     }
   };
 
-  const [requests, setRequests] = useState([]);
-  const [loadingRequests, setLoadingRequests] = useState(false);
-  const [error, setError] = useState("");
-  const fetchRequests = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        "http://localhost:5000/api/auth/doctor-applications"
-      );
-      const data = await res.json();
-      setRequests(data.requests || []);
-    } catch (err) {
-      setError("Failed to fetch doctor applications");
-    } finally {
-      setLoading(false);
-    }
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
   };
 
-  useEffect(() => {
-    fetchRequests();
-  }, []);
+  const inputVariants = {
+    focus: { scale: 1.02, borderColor: "#10b981", transition: { duration: 0.3 } },
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05, transition: { duration: 0.3 } },
+    tap: { scale: 0.95 },
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } },
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-50 flex items-center justify-center p-4 sm:p-6">
+      <motion.div
+        className="max-w-md w-full bg-white rounded-2xl shadow-lg p-6 sm:p-8 md:p-10"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <h1 className="text-3xl sm:text-4xl font-bold text-center mb-6 bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
           Login
         </h1>
 
         {errorMsg && (
-          <p className="text-red-500 text-center mb-3">{errorMsg}</p>
+          <motion.p
+            className="text-red-500 text-center mb-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {errorMsg}
+          </motion.p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           {/* Email */}
-          <div className="relative">
+          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiMail className="h-5 w-5 text-gray-400" />
+              <FiMail className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
             <input
               type="email"
@@ -103,14 +133,14 @@ const Login = () => {
               onChange={handleChange}
               placeholder="Email"
               required
-              className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all"
+              className="w-full pl-10 pr-4 py-3 sm:py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 transition-all border-emerald-300"
             />
-          </div>
+          </motion.div>
 
           {/* Password */}
-          <div className="relative">
+          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiLock className="h-5 w-5 text-gray-400" />
+              <FiLock className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
             <input
               type={showPassword ? "text" : "password"}
@@ -119,7 +149,7 @@ const Login = () => {
               onChange={handleChange}
               placeholder="Password"
               required
-              className="w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all"
+              className="w-full pl-10 pr-12 py-3 sm:py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 transition-all border-emerald-300"
             />
             <button
               type="button"
@@ -127,108 +157,113 @@ const Login = () => {
               className="absolute inset-y-0 right-0 pr-3 flex items-center"
             >
               {showPassword ? (
-                <FiEyeOff className="h-5 w-5 text-gray-400" />
+                <FiEyeOff className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
               ) : (
-                <FiEye className="h-5 w-5 text-gray-400" />
+                <FiEye className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
               )}
             </button>
-          </div>
+          </motion.div>
 
           {/* Submit */}
-          <button
+          <motion.button
             type="submit"
             disabled={loading}
-            className="w-full py-3 font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
+            className="w-full py-3 sm:py-4 font-semibold text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 transition-all disabled:opacity-50 rounded-lg"
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
           >
             {loading ? "Logging in..." : "Login"}
-          </button>
+          </motion.button>
         </form>
 
-        {/* Login as Admin Link triggers modal */}
+        {/* Login as Admin Link */}
         <div className="text-center mt-4">
-          <button
+          <motion.button
             type="button"
-            className="text-blue-600 font-semibold hover:underline"
-            onClick={() =>
-              (window.location.href = "/admin/review-applications")
-            }
+            className="text-emerald-600 font-semibold hover:underline"
+            onClick={() => (window.location.href = "/admin/review-applications")}
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
           >
             Login as Admin
-          </button>
+          </motion.button>
         </div>
 
-        {/* Admin Login Modal - Glassmorphism theme */}
-        {/* {showAdminModal && (
-          // <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-          //   <div
-          //     className="rounded-2xl shadow-2xl p-8 w-full max-w-xs text-center border border-purple-400"
-          //     style={{
-          //       background: "rgba(255,255,255,0.15)",
-          //       boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
-          //       backdropFilter: "blur(10px)",
-          //       WebkitBackdropFilter: "blur(10px)",
-          //       borderRadius: "20px",
-          //       border: "1px solid rgba(255,255,255,0.18)",
-          //     }}
-          //   >
-          //     <h2 className="text-xl font-bold mb-4 text-purple-700 drop-shadow">
-          //       Admin Secret Login
-          //     </h2>
-          //     <input
-          //       type="email"
-          //       placeholder="Admin Email"
-          //       value={adminEmail}
-          //       onChange={(e) => setAdminEmail(e.target.value)}
-          //       className="w-full mb-3 p-2 border rounded bg-white bg-opacity-40 text-purple-900 placeholder-purple-400 border-purple-300"
-          //       autoFocus
-          //     />
-          //     <input
-          //       type="password"
-          //       placeholder="Password"
-          //       value={adminPassword}
-          //       onChange={(e) => setAdminPassword(e.target.value)}
-          //       className="w-full mb-3 p-2 border rounded bg-white bg-opacity-40 text-purple-900 placeholder-purple-400 border-purple-300"
-          //     />
-          //     {adminError && (
-          //       <div className="text-red-500 mb-2">{adminError}</div>
-          //     )}
-          //     <button
-          //       className="w-full bg-purple-600 bg-opacity-80 text-white py-2 rounded font-semibold mb-2 hover:bg-purple-700"
-          //       onClick={() => {
-          //         if (
-          //           adminEmail === "devu@gmail.com" &&
-          //           adminPassword === "123456"
-          //         ) {
-          //           localStorage.setItem(
-          //             "user",
-          //             JSON.stringify({ email: adminEmail, role: "admin" })
-          //           );
-          //           setShowAdminModal(false);
-          //           window.location.href = "/admin";
-          //         } else {
-          //           setAdminError("Invalid admin credentials");
-          //         }
-          //       }}
-          //     >
-          //       submit
-          //     </button>
-          //     <button
-          //       className="w-full bg-gray-200 bg-opacity-60 text-purple-700 py-2 rounded font-semibold hover:bg-gray-300"
-          //       onClick={() => {
-          //         setShowAdminModal(false);
-          //         setAdminEmail("");
-          //         setAdminPassword("");
-          //         setAdminError("");
-          //       }}
-          //     >
-          //       Cancel
-          //     </button>
-          //   </div>
-          // </div>
-        )} */}
-
-        {/* Removed small sign up link as requested */}
-      </div>
+        {/* Admin Login Modal - Commented Out but Updated */}
+        {/* 
+        <AnimatePresence>
+          {showAdminModal && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30"
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <motion.div
+                className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-xs text-center border border-emerald-400"
+                variants={modalVariants}
+              >
+                <h2 className="text-xl font-bold mb-4 text-emerald-600">
+                  Admin Secret Login
+                </h2>
+                <input
+                  type="email"
+                  placeholder="Admin Email"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  className="w-full mb-3 p-2 border rounded bg-emerald-50 text-emerald-900 placeholder-emerald-400 border-emerald-300 focus:ring-2 focus:ring-emerald-500"
+                  autoFocus
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className="w-full mb-3 p-2 border rounded bg-emerald-50 text-emerald-900 placeholder-emerald-400 border-emerald-300 focus:ring-2 focus:ring-emerald-500"
+                />
+                {adminError && (
+                  <div className="text-red-500 mb-2">{adminError}</div>
+                )}
+                <motion.button
+                  className="w-full bg-gradient-to-r from-emerald-600 to-green-600 text-white py-2 rounded font-semibold hover:from-emerald-700 hover:to-green-700"
+                  onClick={() => {
+                    if (adminEmail === "devu@gmail.com" && adminPassword === "123456") {
+                      localStorage.setItem("user", JSON.stringify({ email: adminEmail, role: "admin" }));
+                      setShowAdminModal(false);
+                      window.location.href = "/admin";
+                    } else {
+                      setAdminError("Invalid admin credentials");
+                    }
+                  }}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Submit
+                </motion.button>
+                <motion.button
+                  className="w-full bg-emerald-100 text-emerald-700 py-2 rounded font-semibold hover:bg-emerald-200 mt-2"
+                  onClick={() => {
+                    setShowAdminModal(false);
+                    setAdminEmail("");
+                    setAdminPassword("");
+                    setAdminError("");
+                  }}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Cancel
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        */}
+      </motion.div>
     </div>
   );
 };

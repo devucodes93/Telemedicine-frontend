@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Me = ({ compact, showDropdown }) => {
   const [user, setUser] = useState(null);
@@ -37,82 +38,159 @@ const Me = ({ compact, showDropdown }) => {
     navigate("/signup");
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  };
+
+  const dropdownVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.3 } },
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05, transition: { duration: 0.3 } },
+    tap: { scale: 0.95 },
+  };
+
+  const textVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.2 } },
+  };
+
   if (compact && user) {
     return (
-      <div className="relative inline-block text-left">
-        <img
+      <motion.div
+        className="relative inline-block text-left"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.img
           src={user.avatar}
           alt="avatar"
-          className="w-10 h-10 rounded-full border cursor-pointer"
+          className="w-10 h-10 rounded-full border border-emerald-300 cursor-pointer"
           onClick={() => setDropdownOpen((open) => !open)}
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
         />
         {showDropdown && dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
-            <button
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-              onClick={() => navigate("/doctor-update")}
+          <AnimatePresence>
+            <motion.div
+              className="absolute right-0 mt-2 w-48 bg-white border border-emerald-200 rounded-lg shadow-lg z-10"
+              variants={dropdownVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
             >
-              Profile Pending
-            </button>
-            <button
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-              onClick={() => navigate("/me")}
-            >
-              Profile
-            </button>
-            <button
-              className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
-          </div>
+              <motion.button
+                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-emerald-50 transition-colors"
+                onClick={() => navigate("/doctor-update")}
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                Profile Pending
+              </motion.button>
+              <motion.button
+                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-emerald-50 transition-colors"
+                onClick={() => navigate("/me")}
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                Profile
+              </motion.button>
+              <motion.button
+                className="block w-full text-left px-4 py-2 text-red-500 hover:bg-emerald-50 transition-colors"
+                onClick={handleLogout}
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                Logout
+              </motion.button>
+            </motion.div>
+          </AnimatePresence>
         )}
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
-      <div className="bg-white shadow-lg rounded-xl p-6 sm:p-8 md:p-10 w-full max-w-sm sm:max-w-md md:max-w-lg text-center">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6">
+    <motion.div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-green-50 px-4 sm:px-6 lg:px-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div
+        className="bg-white shadow-lg rounded-xl p-6 sm:p-8 md:p-10 w-full max-w-sm sm:max-w-md md:max-w-lg text-center"
+        variants={containerVariants}
+      >
+        <motion.h1
+          className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 text-emerald-600"
+          variants={textVariants}
+        >
           My Profile
-        </h1>
+        </motion.h1>
         {user ? (
           <div className="space-y-4 sm:space-y-5">
             {user.avatar && (
-              <img
+              <motion.img
                 src={user.avatar}
                 alt="avatar"
-                className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full mx-auto border"
+                className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full mx-auto border border-emerald-300"
+                variants={textVariants}
               />
             )}
-            <p className="text-sm sm:text-base md:text-lg">
+            <motion.p
+              className="text-sm sm:text-base md:text-lg text-gray-700"
+              variants={textVariants}
+            >
               <strong>Username:</strong> {user.username}
-            </p>
-            <p className="text-sm sm:text-base md:text-lg">
+            </motion.p>
+            <motion.p
+              className="text-sm sm:text-base md:text-lg text-gray-700"
+              variants={textVariants}
+            >
               <strong>Email:</strong> {user.email}
-            </p>
-            <p className="text-sm sm:text-base md:text-lg">
+            </motion.p>
+            <motion.p
+              className="text-sm sm:text-base md:text-lg text-gray-700"
+              variants={textVariants}
+            >
               <strong>Phone:</strong> {user.phoneNumber || "Not provided"}
-            </p>
-            <p className="text-sm sm:text-base md:text-lg">
+            </motion.p>
+            <motion.p
+              className="text-sm sm:text-base md:text-lg text-gray-700"
+              variants={textVariants}
+            >
               <strong>Role:</strong> {user.role || "Not provided"}
-            </p>
-            <button
+            </motion.p>
+            <motion.button
               onClick={handleLogout}
-              className="mt-4 sm:mt-6 bg-red-400 hover:bg-red-600 text-white font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-2xl transition-colors duration-300 w-full"
+              className="mt-4 sm:mt-6 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all w-full"
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
             >
               Logout
-            </button>
+            </motion.button>
           </div>
         ) : (
-          <p className="text-sm sm:text-base md:text-lg">
+          <motion.p
+            className="text-sm sm:text-base md:text-lg text-gray-600"
+            variants={textVariants}
+          >
             No user found. Please log in.
-          </p>
+          </motion.p>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

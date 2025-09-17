@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const AuthSuccess = () => {
   const navigate = useNavigate();
@@ -19,7 +20,24 @@ const AuthSuccess = () => {
     }
   }, [navigate]);
 
-  return <p>Logging you in...</p>;
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+  };
+
+  return (
+    <motion.div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-green-50 p-4"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <p className="text-lg sm:text-xl font-semibold text-emerald-600">
+        Logging you in...
+      </p>
+    </motion.div>
+  );
 };
 
 export default AuthSuccess;

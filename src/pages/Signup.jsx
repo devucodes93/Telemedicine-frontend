@@ -11,6 +11,7 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -32,6 +33,8 @@ const Signup = () => {
   const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showGoogleRoleModal, setShowGoogleRoleModal] = useState(false);
+  const [googleRole, setGoogleRole] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,6 +54,7 @@ const Signup = () => {
       reader.readAsDataURL(file);
     }
   };
+
   const handleCertificateChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -87,15 +91,13 @@ const Signup = () => {
       let response;
 
       if (role === "Doctor") {
-        // Convert avatar and certificate to base64
-        const getBase64 = (file) => {
-          return new Promise((resolve, reject) => {
+        const getBase64 = (file) =>
+          new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result);
             reader.onerror = reject;
             reader.readAsDataURL(file);
           });
-        };
 
         const avatarBase64 = selectedFile ? await getBase64(selectedFile) : "";
         const certificateBase64 = certificateFile
@@ -120,7 +122,6 @@ const Signup = () => {
           payload
         );
       } else {
-        // Patient — send with FormData
         const form = new FormData();
         form.append("username", formData.username);
         form.append("email", formData.email);
@@ -132,11 +133,7 @@ const Signup = () => {
         response = await axios.post(
           "http://localhost:5000/api/auth/signup",
           form,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
       }
 
@@ -153,15 +150,11 @@ const Signup = () => {
       });
       setSelectedFile(null);
       setPreviewUrl("");
-<<<<<<< HEAD
-      navigate("/me");
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      localStorage.setItem("token", response.data.token);
-=======
       setCertificateFile(null);
       setCertificatePreview("");
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", response.data.token);
       navigate("/login");
->>>>>>> 629627631805bd070d8eb729f0825a3364f568fb
     } catch (err) {
       console.error("Error", err);
       alert(err.response?.data?.msg || "Signup failed");
@@ -169,9 +162,6 @@ const Signup = () => {
       setLoading(false);
     }
   };
-
-  const [showGoogleRoleModal, setShowGoogleRoleModal] = useState(false);
-  const [googleRole, setGoogleRole] = useState("");
 
   const handleGoogleSignup = () => {
     setShowGoogleRoleModal(true);
@@ -187,17 +177,47 @@ const Signup = () => {
     }
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
+  };
+
+  const inputVariants = {
+    focus: { scale: 1.02, borderColor: "#10b981", transition: { duration: 0.3 } },
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05, transition: { duration: 0.3 } },
+    tap: { scale: 0.95 },
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } },
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-6 sm:p-8 md:p-10">
-        <h1 className="text-3xl sm:text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-50 flex items-center justify-center p-4 sm:p-6">
+      <motion.div
+        className="max-w-md w-full bg-white rounded-2xl shadow-lg p-6 sm:p-8 md:p-10"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <h1 className="text-3xl sm:text-4xl font-bold text-center mb-6 bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
           Signup
         </h1>
 
         {/* Avatar Upload */}
-        <div className="text-center mb-6">
+        <motion.div className="text-center mb-6" whileHover={{ scale: 1.05 }}>
           <div className="relative inline-block">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-100 hover:border-gray-500 transition-colors">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-dashed border-emerald-300 flex items-center justify-center overflow-hidden bg-emerald-50 hover:border-emerald-500 transition-colors">
               {previewUrl ? (
                 <img
                   src={previewUrl}
@@ -205,7 +225,7 @@ const Signup = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <FiUpload className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                <FiUpload className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" />
               )}
             </div>
             <input
@@ -218,14 +238,14 @@ const Signup = () => {
           <p className="text-xs sm:text-sm text-gray-500 mt-2">
             Upload profile picture
           </p>
-        </div>
+        </motion.div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           {/* Username */}
-          <div className="relative">
+          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiUser className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+              <FiUser className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
             <input
               type="text"
@@ -233,8 +253,8 @@ const Signup = () => {
               value={formData.username}
               onChange={handleChange}
               placeholder="Username"
-              className={`w-full pl-10 pr-4 py-3 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all ${
-                errors.username ? "border-red-500" : "border-gray-300"
+              className={`w-full pl-10 pr-4 py-3 sm:py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 transition-all ${
+                errors.username ? "border-red-500" : "border-emerald-300"
               }`}
             />
             {errors.username && (
@@ -242,12 +262,12 @@ const Signup = () => {
                 {errors.username}
               </p>
             )}
-          </div>
+          </motion.div>
 
           {/* Email */}
-          <div className="relative">
+          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiMail className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+              <FiMail className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
             <input
               type="email"
@@ -255,8 +275,8 @@ const Signup = () => {
               value={formData.email}
               onChange={handleChange}
               placeholder="Email"
-              className={`w-full pl-10 pr-4 py-3 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all ${
-                errors.email ? "border-red-500" : "border-gray-300"
+              className={`w-full pl-10 pr-4 py-3 sm:py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 transition-all ${
+                errors.email ? "border-red-500" : "border-emerald-300"
               }`}
             />
             {errors.email && (
@@ -264,12 +284,12 @@ const Signup = () => {
                 {errors.email}
               </p>
             )}
-          </div>
+          </motion.div>
 
           {/* Phone */}
-          <div className="relative">
+          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiPhone className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+              <FiPhone className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
             <input
               type="tel"
@@ -277,8 +297,8 @@ const Signup = () => {
               value={formData.phoneNumber}
               onChange={handleChange}
               placeholder="Phone Number"
-              className={`w-full pl-10 pr-4 py-3 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all ${
-                errors.phoneNumber ? "border-red-500" : "border-gray-300"
+              className={`w-full pl-10 pr-4 py-3 sm:py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 transition-all ${
+                errors.phoneNumber ? "border-red-500" : "border-emerald-300"
               }`}
             />
             {errors.phoneNumber && (
@@ -286,12 +306,12 @@ const Signup = () => {
                 {errors.phoneNumber}
               </p>
             )}
-          </div>
+          </motion.div>
 
           {/* Password */}
-          <div className="relative">
+          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiLock className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+              <FiLock className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
             <input
               type={showPassword ? "text" : "password"}
@@ -299,8 +319,8 @@ const Signup = () => {
               value={formData.password}
               onChange={handleChange}
               placeholder="Password"
-              className={`w-full pl-10 pr-12 py-3 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all ${
-                errors.password ? "border-red-500" : "border-gray-300"
+              className={`w-full pl-10 pr-12 py-3 sm:py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 transition-all ${
+                errors.password ? "border-red-500" : "border-emerald-300"
               }`}
             />
             <button
@@ -309,9 +329,9 @@ const Signup = () => {
               className="absolute inset-y-0 right-0 pr-3 flex items-center"
             >
               {showPassword ? (
-                <FiEyeOff className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+                <FiEyeOff className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
               ) : (
-                <FiEye className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+                <FiEye className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
               )}
             </button>
             {errors.password && (
@@ -319,10 +339,10 @@ const Signup = () => {
                 {errors.password}
               </p>
             )}
-          </div>
+          </motion.div>
 
           {/* Role */}
-          <div>
+          <motion.div whileFocus="focus" variants={inputVariants}>
             <label className="block text-sm sm:text-base font-medium text-gray-700">
               Role
             </label>
@@ -330,160 +350,188 @@ const Signup = () => {
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full px-4 py-2 mt-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-4 py-2 mt-1 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none border-emerald-300"
             >
               <option value="patient">Patient</option>
               <option value="Doctor">Doctor</option>
             </select>
-          </div>
+          </motion.div>
 
           {/* Doctor-specific fields */}
-          {formData.role === "Doctor" && (
-            <>
-              <div className="relative">
-                <input
-                  type="text"
-                  name="specialization"
-                  value={formData.specialization}
-                  onChange={handleChange}
-                  placeholder="Specialization"
-                  className="w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 transition-all mb-2"
-                />
-              </div>
-              <div className="relative">
-                <input
-                  type="number"
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleChange}
-                  placeholder="Experience (years)"
-                  className="w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 transition-all mb-2"
-                  min={0}
-                />
-              </div>
-              <div className="relative">
-                <input
-                  type="number"
-                  name="fee"
-                  value={formData.fee}
-                  onChange={handleChange}
-                  placeholder="Consultation Fee"
-                  className="w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 transition-all mb-2"
-                  min={0}
-                />
-              </div>
-              {/* Certificate Upload */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Upload MBBS Certificate / Identity
-                </label>
-                <div className="relative inline-block w-full">
-                  <div className="w-full h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 hover:border-purple-500 transition-colors cursor-pointer">
-                    {certificatePreview ? (
-                      <img
-                        src={certificatePreview}
-                        alt="Certificate Preview"
-                        className="w-full h-full object-contain"
+          <AnimatePresence>
+            {formData.role === "Doctor" && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+                  <input
+                    type="text"
+                    name="specialization"
+                    value={formData.specialization}
+                    onChange={handleChange}
+                    placeholder="Specialization"
+                    className="w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 transition-all mb-2 border-emerald-300"
+                  />
+                </motion.div>
+                <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+                  <input
+                    type="number"
+                    name="experience"
+                    value={formData.experience}
+                    onChange={handleChange}
+                    placeholder="Experience (years)"
+                    className="w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 transition-all mb-2 border-emerald-300"
+                    min={0}
+                  />
+                </motion.div>
+                <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+                  <input
+                    type="number"
+                    name="fee"
+                    value={formData.fee}
+                    onChange={handleChange}
+                    placeholder="Consultation Fee"
+                    className="w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 transition-all mb-2 border-emerald-300"
+                    min={0}
+                  />
+                </motion.div>
+                {/* Certificate Upload */}
+                <motion.div className="mb-4" whileHover={{ scale: 1.05 }}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Upload MBBS Certificate / Identity
+                  </label>
+                  <div className="relative inline-block w-full">
+                    <div className="w-full h-32 rounded-lg border-2 border-dashed border-emerald-300 flex items-center justify-center overflow-hidden bg-emerald-50 hover:border-emerald-500 transition-colors cursor-pointer">
+                      {certificatePreview ? (
+                        <img
+                          src={certificatePreview}
+                          alt="Certificate Preview"
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <FiUpload className="w-8 h-8 text-emerald-400" />
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={handleCertificateChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       />
-                    ) : (
-                      <FiUpload className="w-8 h-8 text-gray-400" />
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*,application/pdf"
-                      onChange={handleCertificateChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Accepted: JPG, PNG, PDF
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Accepted: JPG, PNG, PDF
-                  </p>
-                </div>
-                <div className="mt-2">
-                  <span className="block text-xs text-yellow-700 bg-yellow-100 rounded px-2 py-1 font-semibold">
-                    Warning: Your certificate and personal data are used only
-                    for verification and will never be misused. We respect your
-                    privacy.
-                  </span>
-                </div>
-              </div>
-            </>
-          )}
+                  <div className="mt-2">
+                    <span className="block text-xs text-emerald-700 bg-emerald-100 rounded px-2 py-1 font-semibold">
+                      Note: Your certificate and personal data are used only for
+                      verification and will never be misused. We respect your
+                      privacy.
+                    </span>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Submit */}
-          <button
+          <motion.button
             type="submit"
             disabled={loading}
-            className="w-full py-3 sm:py-4 font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
+            className="w-full py-3 sm:py-4 font-semibold text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 transition-all disabled:opacity-50 rounded-lg"
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
           >
             {loading ? "Creating Account..." : "Sign Up"}
-          </button>
+          </motion.button>
         </form>
 
         {/* OR */}
         <div className="flex items-center justify-center my-4">
-          <span className="w-1/5 border-b border-gray-300"></span>
+          <span className="w-1/5 border-b border-emerald-300"></span>
           <span className="px-2 text-gray-500 text-sm sm:text-base">OR</span>
-          <span className="w-1/5 border-b border-gray-300"></span>
+          <span className="w-1/5 border-b border-emerald-300"></span>
         </div>
 
         {/* Google Signup */}
-
-        <button
+        <motion.button
           onClick={handleGoogleSignup}
-          className="flex items-center justify-center w-full py-2 sm:py-3 mt-2 space-x-2 font-semibold text-gray-700 bg-gray-100 border rounded-lg hover:bg-gray-200"
+          className="flex items-center justify-center w-full py-2 sm:py-3 mt-2 space-x-2 font-semibold text-gray-700 bg-emerald-50 border border-emerald-300 rounded-lg hover:bg-emerald-100"
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
         >
           <FcGoogle size={24} />
           <span className="text-sm sm:text-base">Sign up with Google</span>
-        </button>
+        </motion.button>
 
         {/* Google Role Modal */}
-        {showGoogleRoleModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-            <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xs text-center">
-              <h2 className="text-lg font-bold mb-4">
-                Are you registering as a Doctor or Patient?
-              </h2>
-              <div className="flex gap-4 justify-center mb-4">
-                <button
-                  className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700"
-                  onClick={() => handleGoogleRoleSelect("Patient")}
-                >
-                  Patient
-                </button>
-                <button
-                  className="px-4 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700"
-                  onClick={() => handleGoogleRoleSelect("Doctor")}
-                >
-                  Doctor
-                </button>
-              </div>
-              {googleRole === "Doctor" && (
-                <div className="text-red-600 font-semibold mt-2">
-                  Google signup is not allowed for doctors. Please use the
-                  regular signup form.
-                </div>
-              )}
-              <button
-                className="mt-4 text-gray-500 hover:text-gray-700 text-sm underline"
-                onClick={() => setShowGoogleRoleModal(false)}
+        <AnimatePresence>
+          {showGoogleRoleModal && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={modalVariants}
+            >
+              <motion.div
+                className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xs text-center"
+                variants={modalVariants}
               >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
+                <h2 className="text-lg font-bold mb-4 text-emerald-600">
+                  Are you registering as a Doctor or Patient?
+                </h2>
+                <div className="flex gap-4 justify-center mb-4">
+                  <motion.button
+                    className="px-4 py-2 rounded bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+                    onClick={() => handleGoogleRoleSelect("Patient")}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Patient
+                  </motion.button>
+                  <motion.button
+                    className="px-4 py-2 rounded bg-green-600 text-white font-semibold hover:bg-green-700"
+                    onClick={() => handleGoogleRoleSelect("Doctor")}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Doctor
+                  </motion.button>
+                </div>
+                {googleRole === "Doctor" && (
+                  <div className="text-red-600 font-semibold mt-2">
+                    Google signup is not allowed for doctors. Please use the
+                    regular signup form.
+                  </div>
+                )}
+                <motion.button
+                  className="mt-4 text-gray-500 hover:text-gray-700 text-sm underline"
+                  onClick={() => setShowGoogleRoleModal(false)}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  Cancel
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <p className="text-xs sm:text-sm text-center text-gray-600 mt-4">
           Already have an account?{" "}
           <Link
             to="/login"
-            className="text-blue-600 font-semibold hover:underline"
+            className="text-emerald-600 font-semibold hover:underline"
           >
             Login
           </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 };

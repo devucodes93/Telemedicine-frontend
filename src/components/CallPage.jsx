@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaMicrophone,
   FaMicrophoneSlash,
@@ -34,11 +35,32 @@ const CallPage = () => {
   const [position, setPosition] = useState({ x: 20, y: 20 });
   const [dragging, setDragging] = useState(false);
   const offset = useRef({ x: 0, y: 0 });
-
   const [remoteStreamAvailable, setRemoteStreamAvailable] = useState(false);
-  const peerRef = useRef(null); // Ensure peerRef is defined
-  // Setup peer connection and handle remote stream robustly
+  const peerRef = useRef(null);
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.6, ease: "easeOut" } },
+  };
+
+  const overlayVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.3 } },
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05, transition: { duration: 0.3 } },
+    tap: { scale: 0.95 },
+  };
+
+  const videoVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, delay: 0.2 } },
+  };
+
+  // WebRTC and socket logic (unchanged)
   useEffect(() => {
     if (
       remoteRef.current !== remoteVideoRef.current &&
@@ -52,15 +74,12 @@ const CallPage = () => {
   useEffect(() => {
     if (!socket || !localVideo) return;
 
-    // Only create peer connection once
     if (!peerRef.current) {
       peerRef.current = new window.RTCPeerConnection();
     }
     const peer = peerRef.current;
 
-    // Always add local stream tracks to peer connection
     if (localVideo && localVideo.getTracks) {
-      // Remove all existing senders before adding new tracks
       peer.getSenders().forEach((sender) => {
         peer.removeTrack(sender);
       });
@@ -69,7 +88,6 @@ const CallPage = () => {
       });
     }
 
-    // Always set remote video on ontrack
     peer.ontrack = (event) => {
       if (remoteRef.current) {
         remoteRef.current.srcObject = event.streams[0];
@@ -77,9 +95,8 @@ const CallPage = () => {
       }
     };
 
-    // ICE candidate handling
     peer.onicecandidate = (event) => {
-      const room = localStorage.getItem("activeRoom") || roomId || roomId;
+      const room = localStorage.getItem("activeRoom") || roomId || id;
       if (event.candidate) {
         console.log("ICE candidate:", event.candidate);
         socket.emit("signal", {
@@ -97,7 +114,8 @@ const CallPage = () => {
         peer.onicecandidate = null;
       }
     };
-  }, [localVideo, socket, roomId]);
+  }, [localVideo, socket, roomId, id]);
+
   useEffect(() => {
     if (!socket) return;
     const handleRoomReady = (payload) => {
@@ -138,7 +156,7 @@ const CallPage = () => {
     return () => {
       socket.off("room-ready", handleRoomReady);
     };
-  }, [socket, startCall, navigate]);
+  }, [socket, startCall]);
 
   useEffect(() => {
     if (
@@ -170,6 +188,7 @@ const CallPage = () => {
   const handleMouseUp = () => {
     setDragging(false);
   };
+
   const handleTouchStart = (e) => {
     const touch = e.touches[0];
     offset.current = {
@@ -179,19 +198,29 @@ const CallPage = () => {
     setDragging(true);
   };
 
+  const handleTouchMove = (e) => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    setPosition({
+      x: touch.clientX - offset.current.x,
+      y: touch.clientY - offset.current.y,
+    });
+  };
+
+  const handleTouchEnd = () => {
+    setDragging(false);
+  };
+
   useEffect(() => {
     socket?.on("room-joined", (room) => {
       setRoomId(room);
-      // Doctor: call startCall and setupSignalListener after joining
       startCall();
       setupSignalListener();
     });
 
     socket?.on("ready", async () => {
-      // Patient: call startCall and setupSignalListener after ready
       startCall();
       setupSignalListener();
-      // Wait for peer connection
       let tries = 0;
       while (!peerRef.current && tries < 10) {
         await new Promise((res) => setTimeout(res, 200));
@@ -209,13 +238,11 @@ const CallPage = () => {
       }
     });
 
-    // ICE candidate queue for race condition
     let iceCandidateQueue = [];
     socket?.on("signal", async (data) => {
       const peer = peerRef.current;
       if (!peer) return;
       if (data.offer) {
-        // Only set remote offer if signalingState is stable or have-remote-offer
         if (
           peer.signalingState === "stable" ||
           peer.signalingState === "have-remote-offer"
@@ -223,7 +250,6 @@ const CallPage = () => {
           await peer.setRemoteDescription(
             new RTCSessionDescription(data.offer)
           );
-          // Add any queued ICE candidates
           if (iceCandidateQueue.length > 0) {
             for (const candidate of iceCandidateQueue) {
               try {
@@ -245,12 +271,10 @@ const CallPage = () => {
           );
         }
       } else if (data.answer) {
-        // Only set remote answer if signalingState is have-local-offer
         if (peer.signalingState === "have-local-offer") {
           await peer.setRemoteDescription(
             new RTCSessionDescription(data.answer)
           );
-          // Add any queued ICE candidates
           if (iceCandidateQueue.length > 0) {
             for (const candidate of iceCandidateQueue) {
               try {
@@ -270,7 +294,6 @@ const CallPage = () => {
         }
       } else if (data.candidate) {
         try {
-          // Only add ICE candidate if remote description is set
           if (peer.remoteDescription && peer.remoteDescription.type) {
             await peer.addIceCandidate(new RTCIceCandidate(data.candidate));
             console.log("Added ICE candidate immediately", data.candidate);
@@ -301,44 +324,28 @@ const CallPage = () => {
         socket.off("signal"),
         socket.off("user-disconnected"));
     };
-  }, [roomId]);
+  }, [roomId, socket, setupSignalListener, startCall, navigate]);
 
-  const handleTouchMove = (e) => {
-    if (!dragging) return;
-    const touch = e.touches[0];
-    setPosition({
-      x: touch.clientX - offset.current.x,
-      y: touch.clientY - offset.current.y,
-    });
-  };
-
-  const handleTouchEnd = () => {
-    setDragging(false);
-  };
   useEffect(() => {
     if (!socket) {
       navigate("/");
     }
   }, [socket, navigate]);
 
-  // Save video refs to store
   useEffect(() => {
     setLocalVideoRef(localRef);
     setRemoteVideoRef(remoteRef);
     console.log(remoteRef, "this is remote ref");
-  }, [setLocalVideoRef, setRemoteVideoRef, remoteRef]);
+  }, [setLocalVideoRef, setRemoteVideoRef]);
 
-  // Attach local stream to video element
   useEffect(() => {
     if (localRef.current && localVideo) {
       localRef.current.srcObject = localVideo;
     }
   }, [localVideo]);
 
-  // Listen for remote stream attach by watching remoteRef's srcObject
   useEffect(() => {
     const remoteVideoEl = remoteRef.current;
-
     if (!remoteVideoEl) return;
 
     const checkRemoteStream = () => {
@@ -347,13 +354,11 @@ const CallPage = () => {
       }
     };
 
-    // Also listen to 'loadedmetadata' event as video stream is ready to play
     remoteVideoEl.addEventListener("loadedmetadata", () => {
       setRemoteStreamAvailable(true);
       remoteVideoEl.play().catch(() => {});
     });
 
-    // Initial check
     checkRemoteStream();
 
     return () => {
@@ -361,16 +366,11 @@ const CallPage = () => {
     };
   }, [remoteRef]);
 
-  // Setup socket listeners once socket is ready
   useEffect(() => {
     if (!socket) return;
 
-    setupSignalListener();
-    // joinRandom();
-
     socket.on("user-disconnected", () => {
       navigate("/");
-      toast.error("User disconnected 🤦‍♂️🤷‍♂️");
     });
 
     return () => {
@@ -379,17 +379,9 @@ const CallPage = () => {
         socket.off("room-joined");
         socket.off("ready");
         socket.off("user-disconnected");
-        // disconnectSocket(roomId);
       }
     };
-  }, [
-    socket,
-    roomId,
-    navigate,
-    setupSignalListener,
-    joinRandom,
-    disconnectSocket,
-  ]);
+  }, [socket, navigate, setupSignalListener, joinRandom, disconnectSocket]);
 
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -402,9 +394,9 @@ const CallPage = () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [socket, roomId, disconnectSocket]);
+
   const startPollingForRemote = () => {
     startCall();
-
     socket.emit("retry-call", {
       roomId,
       data: {
@@ -412,7 +404,6 @@ const CallPage = () => {
         message: "Retrying connection or signaling...",
       },
     });
-
     setupSignalListener();
     let intervalId = setInterval(() => {
       if (remoteRef.current) {
@@ -423,7 +414,6 @@ const CallPage = () => {
       }
     }, 5000);
     startCall();
-    // Optionally call immediately once
     if (!remoteRef.current) {
       startCall();
       setupSignalListener();
@@ -432,8 +422,6 @@ const CallPage = () => {
   };
 
   useEffect(() => {
-    //setting status false when user in /doctor dashboard
-
     const userFromLocal = localStorage.getItem("user");
     const user = userFromLocal ? JSON.parse(userFromLocal) : null;
     if (user && user.role !== "Doctor") {
@@ -450,7 +438,6 @@ const CallPage = () => {
       });
     }
     return () => {
-      //setting status as offline when user closes the tab or browser
       user.role === "Doctor" &&
         fetch("http://localhost:5000/api/booking/doctor-live", {
           method: "POST",
@@ -462,66 +449,103 @@ const CallPage = () => {
           }),
         });
     };
-  }, []);
+  }, [roomId]);
+
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      {redirecting && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center">
-            <span className="text-blue-600 text-xl font-bold mb-2">
-              Redirecting to active call...
-            </span>
-            <div className="w-12 h-12 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        </div>
-      )}
-      {/* Header - sticky navbar */}
+    <motion.div
+      className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-50 flex flex-col"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <AnimatePresence>
+        {redirecting && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
+            variants={overlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <motion.div
+              className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center"
+              variants={overlayVariants}
+            >
+              <motion.span
+                className="text-emerald-600 text-xl font-bold mb-2"
+                variants={videoVariants}
+              >
+                Redirecting to active call...
+              </motion.span>
+              <motion.div
+                className="w-12 h-12 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin"
+                variants={videoVariants}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="relative w-screen h-screen">
-        <video
+        <motion.video
           ref={localRef}
           autoPlay
           muted
           playsInline
           onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="w-32 h-48 object-cover rounded-2xl transform scale-x-[-1] z-10 cursor-move absolute"
+          className="w-32 h-48 object-cover rounded-xl transform scale-x-[-1] z-10 cursor-move absolute shadow-md"
           style={{
             left: `${position.x}px`,
             top: `${position.y}px`,
           }}
+          variants={videoVariants}
         />
-
-        <video
+        <motion.video
           ref={remoteRef}
           autoPlay
           playsInline
           className="w-full h-full object-cover transform scale-x-[-1]"
+          variants={videoVariants}
         />
-
-        {/* Show message if remote stream is NOT available */}
-        {!remoteStreamAvailable && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-60 text-white text-center p-4">
-            <h2 className="text-xl font-bold mb-2">
-              waiting for user to join...
-            </h2>
-            <p>
-              Please check your internet connection or wait for the other user
-              to join.
-            </p>
-            <button
-              onClick={() => {
-                startPollingForRemote();
-              }}
-              className="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+        <AnimatePresence>
+          {!remoteStreamAvailable && (
+            <motion.div
+              className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-60 text-white text-center p-4"
+              variants={overlayVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
             >
-              Retry
-            </button>
-          </div>
-        )}
+              <motion.h2
+                className="text-xl sm:text-2xl font-bold mb-2"
+                variants={videoVariants}
+              >
+                Waiting for user to join...
+              </motion.h2>
+              <motion.p
+                className="text-sm sm:text-base max-w-md"
+                variants={videoVariants}
+              >
+                Please check your internet connection or wait for the other user to join.
+              </motion.p>
+              <motion.button
+                onClick={startPollingForRemote}
+                className="mt-4 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                Retry
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

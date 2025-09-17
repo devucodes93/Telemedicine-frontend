@@ -1,18 +1,37 @@
 import React from "react";
-import { FiArrowRight } from "react-icons/fi"; // Importing an arrow icon for the button
+import { FiArrowRight } from "react-icons/fi";
+import { motion } from "framer-motion";
 
 const Card = ({ id, svg, Icon, service, description }) => {
+  // Animation variants
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+    hover: {
+      y: -6,
+      scale: 1.03,
+      boxShadow: "0 15px 30px rgba(0, 0, 0, 0.2)",
+      background: "linear-gradient(to top right, #059669, #10b981, #34d399)",
+      transition: { duration: 0.3 },
+    },
+  };
+
+  const buttonVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  };
+
   return (
-    <div
-      // Added "group" to control child element styles on hover (e.g., text color)
-      // Added "relative" to position the ID number
-      className="group relative flex flex-col items-center justify-start bg-white rounded-2xl shadow-md border border-gray-200 
-      hover:-translate-y-1.5 transition-all duration-300 
-      hover:bg-gradient-to-tr from-indigo-600 via-blue-500 to-cyan-400 
-      hover:text-white hover:shadow-xl w-full max-w-xs h-[400px] p-6 text-center"
+    <motion.div
+      className="group relative flex flex-col items-center justify-start bg-white rounded-2xl shadow-md border border-emerald-200 w-full max-w-xs h-[400px] p-6 text-center"
+      variants={cardVariants}
+      initial="hidden"
+      whileInView="visible"
+      whileHover="hover"
+      viewport={{ once: true }}
     >
-      {/* Card ID - Made smaller and positioned at the top-right for a subtle, professional look */}
-      <h1 className="absolute top-4 right-6 text-2xl font-bold text-gray-200 group-hover:text-blue-200 transition-colors">
+      {/* Card ID */}
+      <h1 className="absolute top-4 right-6 text-xl sm:text-2xl font-bold text-gray-200 group-hover:text-emerald-200 transition-colors">
         {id}
       </h1>
 
@@ -22,32 +41,24 @@ const Card = ({ id, svg, Icon, service, description }) => {
           <img
             src={svg}
             alt={service}
-            className="h-28 w-28 object-contain"
+            className="h-24 sm:h-28 w-24 sm:w-28 object-contain"
           />
         )}
         {Icon && (
-          // Icon color now changes to white on hover
-          <Icon className="h-28 w-28 text-blue-500 group-hover:text-white transition-colors" />
+          <Icon className="h-24 sm:h-28 w-24 sm:w-28 text-emerald-500 group-hover:text-white transition-colors" />
         )}
       </div>
 
-      {/* Service Name - Main title of the card */}
-      <h2 className="text-xl font-bold mt-6 text-gray-800 group-hover:text-white">
+      {/* Service Name */}
+      <h2 className="text-lg sm:text-xl font-bold mt-6 text-gray-800 group-hover:text-white">
         {service}
       </h2>
 
-      {/* NEW: Service Description */}
-      <p className="text-sm text-gray-600 mt-2 flex-grow group-hover:text-gray-100">
+      {/* Service Description */}
+      <p className="text-sm sm:text-base text-gray-600 mt-2 flex-grow group-hover:text-gray-100">
         {description}
       </p>
-      
-      {/* NEW: "Book Now" Button - Appears on hover */}
-      <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <button className="flex items-center gap-2 font-semibold text-white">
-          Book Now <FiArrowRight />
-        </button>
-      </div>
-    </div>
+    </motion.div>
   );
 };
 

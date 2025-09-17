@@ -1,28 +1,61 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 function FAQItem({ question, answer }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Animation variants for the answer
+  const answerVariants = {
+    open: { maxHeight: "24rem", padding: "1rem", opacity: 1, transition: { duration: 0.5 } },
+    closed: { maxHeight: 0, padding: "0", opacity: 0, transition: { duration: 0.5 } },
+  };
+
+  // Animation variants for the toggle button
+  const buttonVariants = {
+    hover: { scale: 1.02, backgroundColor: "#d1fae5", transition: { duration: 0.3 } },
+    tap: { scale: 0.98 },
+  };
+
   return (
-    <div className="border-b border-gray-300">
+    <motion.div
+      className="border-b border-emerald-200"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0, transition: { duration: 0.5 } }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
       {/* Question */}
-      <button
+      <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex justify-between items-center p-4 text-left text-lg sm:text-xl font-medium text-gray-800 hover:bg-blue-100 transition-colors"
+        className="w-full flex justify-between items-center p-3 sm:p-4 text-left text-base sm:text-lg lg:text-xl font-medium text-gray-800 hover:bg-emerald-100 transition-colors"
+        variants={buttonVariants}
+        whileHover="hover"
+        whileTap="tap"
       >
         {question}
-        <span className="text-2xl">{isOpen ? "−" : "+"}</span>
-      </button>
+        <motion.span
+          className="text-xl sm:text-2xl"
+          animate={{ rotate: isOpen ? 180 : 0, transition: { duration: 0.3 } }}
+        >
+          {isOpen ? "−" : "+"}
+        </motion.span>
+      </motion.button>
 
       {/* Answer */}
-      <div
-        className={`overflow-hidden transition-all duration-500 ${
-          isOpen ? "max-h-96 p-4" : "max-h-0 p-0"
-        } bg-white text-gray-700`}
-      >
-        <p className="text-sm sm:text-base">{answer}</p>
-      </div>
-    </div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            className="overflow-hidden bg-white text-gray-700"
+            variants={answerVariants}
+            initial="closed"
+            animate="open"
+            exit="closed"
+          >
+            <p className="text-sm sm:text-base p-3 sm:p-4">{answer}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -39,8 +72,7 @@ export default function Faq() {
     },
     {
       question: "Can I use it 24/7?",
-      answer:
-        "Absolutely! Our doctors are available round the clock to serve you.",
+      answer: "Absolutely! Our doctors are available round the clock to serve you.",
     },
     {
       question: "Do I need the internet to use the app?",
@@ -113,13 +145,16 @@ export default function Faq() {
         "Payments can be made securely via credit/debit cards, UPI, or other supported online payment methods.",
     },
   ];
-  
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white rounded-lg shadow-lg overflow-hidden">
+    <motion.div
+      className="max-w-4xl mx-auto mt-8 sm:mt-10 bg-white rounded-lg shadow-lg overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0, transition: { duration: 0.6 } }}
+    >
       {faqs.map((faq, index) => (
         <FAQItem key={index} question={faq.question} answer={faq.answer} />
       ))}
-    </div>
+    </motion.div>
   );
 }

@@ -18,11 +18,8 @@ import Appointments from "./pages/Appointments";
 import CallPage from "./components/CallPage";
 import useSocketStore from "./store/socketStore";
 import CallPageLoad from "./pages/CallPage";
-<<<<<<< HEAD
 import PatientOption from "./components/PatientOption";
-=======
 import AdminDashboard from "./pages/AdminDashboard";
->>>>>>> 629627631805bd070d8eb729f0825a3364f568fb
 
 const App = () => {
   const { connectSocket } = useSocketStore();

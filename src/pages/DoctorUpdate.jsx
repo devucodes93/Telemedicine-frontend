@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 
 const DoctorUpdate = () => {
   const [form, setForm] = useState({
@@ -47,115 +48,95 @@ const DoctorUpdate = () => {
     }
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  };
+
+  const inputVariants = {
+    focus: { scale: 1.02, borderColor: "#10b981", transition: { duration: 0.3 } },
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05, transition: { duration: 0.3 } },
+    tap: { scale: 0.95 },
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <form
-        className="bg-white shadow-lg rounded-xl p-6 w-full max-w-md text-center space-y-4"
+    <motion.div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-green-50 px-4 sm:px-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.form
+        className="bg-white shadow-lg rounded-xl p-6 sm:p-8 w-full max-w-md text-center space-y-4"
         onSubmit={handleSubmit}
+        variants={containerVariants}
       >
-        <h2 className="text-2xl font-bold mb-4">Update Doctor Profile</h2>
-        <div className="text-left">
-          <label className="block font-semibold mb-1" htmlFor="name">
-            Name
-          </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Name"
-            required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring mb-3"
-          />
-          <label className="block font-semibold mb-1" htmlFor="email">
-            Email
-          </label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="Email"
-            required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring mb-3"
-          />
-          <label className="block font-semibold mb-1" htmlFor="password">
-            Password
-          </label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Password"
-            required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring mb-3"
-          />
-          <label className="block font-semibold mb-1" htmlFor="specialization">
-            Specialization
-          </label>
-          <input
-            type="text"
-            name="specialization"
-            id="specialization"
-            value={form.specialization}
-            onChange={handleChange}
-            placeholder="Specialization"
-            required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring mb-3"
-          />
-          <label className="block font-semibold mb-1" htmlFor="phone">
-            Phone
-          </label>
-          <input
-            type="text"
-            name="phone"
-            id="phone"
-            value={form.phone}
-            onChange={handleChange}
-            placeholder="Phone"
-            required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring mb-3"
-          />
-          <label className="block font-semibold mb-1" htmlFor="experience">
-            Experience (years)
-          </label>
-          <input
-            type="number"
-            name="experience"
-            id="experience"
-            value={form.experience}
-            onChange={handleChange}
-            placeholder="Experience (years)"
-            required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring mb-3"
-          />
-          <label className="block font-semibold mb-1" htmlFor="fee">
-            Fee
-          </label>
-          <input
-            type="number"
-            name="fee"
-            id="fee"
-            value={form.fee}
-            onChange={handleChange}
-            placeholder="Fee"
-            required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring mb-3"
-          />
+        <motion.h2
+          className="text-2xl sm:text-3xl font-bold mb-4 text-gray-800"
+          variants={containerVariants}
+        >
+          Update Doctor Profile
+        </motion.h2>
+        <div className="text-left space-y-4">
+          {[
+            { name: "name", type: "text", placeholder: "Name" },
+            { name: "email", type: "email", placeholder: "Email" },
+            { name: "password", type: "password", placeholder: "Password" },
+            { name: "specialization", type: "text", placeholder: "Specialization" },
+            { name: "phone", type: "text", placeholder: "Phone" },
+            { name: "experience", type: "number", placeholder: "Experience (years)" },
+            { name: "fee", type: "number", placeholder: "Fee" },
+          ].map((field) => (
+            <div key={field.name}>
+              <label
+                className="block font-semibold mb-1 text-gray-700 text-sm sm:text-base"
+                htmlFor={field.name}
+              >
+                {field.placeholder}
+              </label>
+              <motion.input
+                type={field.type}
+                name={field.name}
+                id={field.name}
+                value={form[field.name]}
+                onChange={handleChange}
+                placeholder={field.placeholder}
+                required
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all border-emerald-300 text-gray-800 placeholder-gray-500"
+                variants={inputVariants}
+                whileFocus="focus"
+              />
+            </div>
+          ))}
         </div>
-        {error && <p className="text-red-500">{error}</p>}
-        <button
+        <AnimatePresence>
+          {error && (
+            <motion.p
+              className="text-red-500 text-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {error}
+            </motion.p>
+          )}
+        </AnimatePresence>
+        <motion.button
           type="submit"
-          className="bg-blue-500 text-white px-6 py-2 rounded font-semibold hover:bg-blue-600 transition"
+          className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-2 rounded-lg font-semibold transition-all"
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
         >
           Update Profile
-        </button>
-      </form>
-    </div>
+        </motion.button>
+      </motion.form>
+    </motion.div>
   );
 };
 

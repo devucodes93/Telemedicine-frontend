@@ -21,6 +21,7 @@
     "framer-motion": "^12.23.13",
     "gsap": "^3.13.0",
     "i18next": "^25.5.2",
+    "konsta": "^5.0.1",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-countup": "^6.5.3",
