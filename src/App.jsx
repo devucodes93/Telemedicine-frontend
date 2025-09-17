@@ -84,9 +84,12 @@ const App = () => {
           setLoading(false);
           return;
         }
-        const res = await fetch("http://localhost:5000/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          "https://telemedicine-backend-2.onrender.com/auth/me",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = await res.json();
         console.log(data);
         console.log(role, "roleeeeeeeee");
@@ -235,23 +238,28 @@ const App = () => {
                 className="flex-1 px-6 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-green-700 transition"
                 onClick={async () => {
                   console.log("Accepted");
-                  await fetch("http://localhost:5000/api/emergency/response", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                    body: JSON.stringify({
-                      doctorId: JSON.parse(localStorage.getItem("user"))._id,
-                      patientId: emergency._id, // use the actual patientId
-                      doctorLocation: {
-                        latitude: coords.coordinates.latitude,
-                        longitude: coords.coordinates.longitude,
+                  await fetch(
+                    "https://telemedicine-backend-2.onrender.com/api/emergency/response",
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem(
+                          "token"
+                        )}`,
                       },
-                      emergencyCode: emergency.emergencyCode,
-                      accept: true, // if you want to send this
-                    }),
-                  });
+                      body: JSON.stringify({
+                        doctorId: JSON.parse(localStorage.getItem("user"))._id,
+                        patientId: emergency._id, // use the actual patientId
+                        doctorLocation: {
+                          latitude: coords.coordinates.latitude,
+                          longitude: coords.coordinates.longitude,
+                        },
+                        emergencyCode: emergency.emergencyCode,
+                        accept: true, // if you want to send this
+                      }),
+                    }
+                  );
                   setIsPopupVisible(false);
                   setEmergency(null);
                   navigate("/track-emergency");
@@ -265,17 +273,19 @@ const App = () => {
                     emergencyCode: emergency.emergencyCode,
                     accept: true,
                   });
-                  localStorage.setItem("emergencyCode", JSON.stringify({
-                    patientId: emergency._id,
-                    doctorId: JSON.parse(localStorage.getItem("user"))._id,
-                    DoctorLocation: {
-                      latitude: coords.coordinates.latitude,
-                      longitude: coords.coordinates.longitude,
-                    },
-                    emergencyCode: emergency.emergencyCode,
-                    accept: true,
-                  }));
-                  
+                  localStorage.setItem(
+                    "emergencyCode",
+                    JSON.stringify({
+                      patientId: emergency._id,
+                      doctorId: JSON.parse(localStorage.getItem("user"))._id,
+                      DoctorLocation: {
+                        latitude: coords.coordinates.latitude,
+                        longitude: coords.coordinates.longitude,
+                      },
+                      emergencyCode: emergency.emergencyCode,
+                      accept: true,
+                    })
+                  );
                 }}
               >
                 Accept

@@ -118,7 +118,7 @@ const Signup = () => {
         };
 
         response = await axios.post(
-          "http://localhost:5000/api/auth/doctor-apply",
+          "https://telemedicine-backend-2.onrender.com/api/auth/doctor-apply",
           payload
         );
       } else {
@@ -131,7 +131,7 @@ const Signup = () => {
         if (selectedFile) form.append("avatar", selectedFile);
 
         response = await axios.post(
-          "http://localhost:5000/api/auth/signup",
+          "https://telemedicine-backend-2.onrender.com/api/auth/signup",
           form,
           { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -172,7 +172,10 @@ const Signup = () => {
     if (role === "Doctor") {
       setTimeout(() => setShowGoogleRoleModal(false), 2000);
     } else {
-      window.open("http://localhost:5000/auth/google", "_self");
+      window.open(
+        "https://telemedicine-backend-2.onrender.com/auth/google",
+        "_self"
+      );
       setShowGoogleRoleModal(false);
     }
   };
@@ -188,7 +191,11 @@ const Signup = () => {
   };
 
   const inputVariants = {
-    focus: { scale: 1.02, borderColor: "#10b981", transition: { duration: 0.3 } },
+    focus: {
+      scale: 1.02,
+      borderColor: "#10b981",
+      transition: { duration: 0.3 },
+    },
   };
 
   const buttonVariants = {
@@ -243,7 +250,11 @@ const Signup = () => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           {/* Username */}
-          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+          <motion.div
+            className="relative"
+            whileFocus="focus"
+            variants={inputVariants}
+          >
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <FiUser className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
@@ -265,7 +276,11 @@ const Signup = () => {
           </motion.div>
 
           {/* Email */}
-          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+          <motion.div
+            className="relative"
+            whileFocus="focus"
+            variants={inputVariants}
+          >
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <FiMail className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
@@ -287,7 +302,11 @@ const Signup = () => {
           </motion.div>
 
           {/* Phone */}
-          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+          <motion.div
+            className="relative"
+            whileFocus="focus"
+            variants={inputVariants}
+          >
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <FiPhone className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
@@ -309,7 +328,11 @@ const Signup = () => {
           </motion.div>
 
           {/* Password */}
-          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+          <motion.div
+            className="relative"
+            whileFocus="focus"
+            variants={inputVariants}
+          >
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <FiLock className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
@@ -366,7 +389,11 @@ const Signup = () => {
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+                <motion.div
+                  className="relative"
+                  whileFocus="focus"
+                  variants={inputVariants}
+                >
                   <input
                     type="text"
                     name="specialization"
@@ -376,7 +403,11 @@ const Signup = () => {
                     className="w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 transition-all mb-2 border-emerald-300"
                   />
                 </motion.div>
-                <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+                <motion.div
+                  className="relative"
+                  whileFocus="focus"
+                  variants={inputVariants}
+                >
                   <input
                     type="number"
                     name="experience"
@@ -387,7 +418,11 @@ const Signup = () => {
                     min={0}
                   />
                 </motion.div>
-                <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+                <motion.div
+                  className="relative"
+                  whileFocus="focus"
+                  variants={inputVariants}
+                >
                   <input
                     type="number"
                     name="fee"

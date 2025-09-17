@@ -20,7 +20,7 @@ const BookDoctor = ({ onBooked }) => {
   // Fetch doctors on mount
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/doctor/list")
+      .get("https://telemedicine-backend-2.onrender.com/api/doctor/list")
       .then((res) => {
         const list = res.data.doctors || [];
         setDoctors(list);
@@ -47,7 +47,7 @@ const BookDoctor = ({ onBooked }) => {
       }
 
       const res = await axios.post(
-        "http://localhost:5000/api/booking/booking",
+        "https://telemedicine-backend-2.onrender.com/api/booking/booking",
         {
           patientId,
           doctorId: selectedDoctor._id,
@@ -75,17 +75,29 @@ const BookDoctor = ({ onBooked }) => {
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
   };
 
   const cardVariants = {
     hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, delay: 0.2 } },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.5, delay: 0.2 },
+    },
     hover: { scale: 1.05, transition: { duration: 0.3 } },
   };
 
   const inputVariants = {
-    focus: { scale: 1.02, borderColor: "#10b981", transition: { duration: 0.3 } },
+    focus: {
+      scale: 1.02,
+      borderColor: "#10b981",
+      transition: { duration: 0.3 },
+    },
   };
 
   const buttonVariants = {
@@ -119,7 +131,9 @@ const BookDoctor = ({ onBooked }) => {
               <motion.div
                 key={doc._id}
                 className={`flex-shrink-0 min-w-[120px] max-w-[140px] bg-white rounded-xl shadow-lg p-2 flex flex-col items-center snap-center transition-all ${
-                  selectedDoctor?._id === doc._id ? "ring-4 ring-emerald-400" : ""
+                  selectedDoctor?._id === doc._id
+                    ? "ring-4 ring-emerald-400"
+                    : ""
                 }`}
                 onClick={() => setSelectedDoctor(doc)}
                 style={{ cursor: "pointer" }}
@@ -166,7 +180,9 @@ const BookDoctor = ({ onBooked }) => {
                   whileHover="hover"
                   whileTap="tap"
                 >
-                  {selectedDoctor?._id === doc._id ? t("Selected") : t("Choose")}
+                  {selectedDoctor?._id === doc._id
+                    ? t("Selected")
+                    : t("Choose")}
                 </motion.button>
               </motion.div>
             ))}

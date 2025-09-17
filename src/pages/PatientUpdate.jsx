@@ -45,7 +45,10 @@ const PatientUpdate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/patient/update", form);
+      await axios.post(
+        "https://telemedicine-backend-2.onrender.com/api/patient/update",
+        form
+      );
       navigate("/me");
     } catch (err) {
       setError(err.response?.data?.message || "Update failed");
@@ -63,7 +66,11 @@ const PatientUpdate = () => {
   };
 
   const inputVariants = {
-    focus: { scale: 1.02, borderColor: "#10b981", transition: { duration: 0.3 } },
+    focus: {
+      scale: 1.02,
+      borderColor: "#10b981",
+      transition: { duration: 0.3 },
+    },
   };
 
   const buttonVariants = {
@@ -86,7 +93,10 @@ const PatientUpdate = () => {
         <div className="text-left space-y-4">
           {/* Name */}
           <div>
-            <label className="block font-semibold mb-1 text-gray-700" htmlFor="name">
+            <label
+              className="block font-semibold mb-1 text-gray-700"
+              htmlFor="name"
+            >
               Name
             </label>
             <motion.input
@@ -103,7 +113,10 @@ const PatientUpdate = () => {
           </div>
           {/* Email */}
           <div>
-            <label className="block font-semibold mb-1 text-gray-700" htmlFor="email">
+            <label
+              className="block font-semibold mb-1 text-gray-700"
+              htmlFor="email"
+            >
               Email
             </label>
             <motion.input
@@ -119,7 +132,10 @@ const PatientUpdate = () => {
           </div>
           {/* Password */}
           <div>
-            <label className="block font-semibold mb-1 text-gray-700" htmlFor="password">
+            <label
+              className="block font-semibold mb-1 text-gray-700"
+              htmlFor="password"
+            >
               Password
             </label>
             <motion.input
@@ -134,7 +150,10 @@ const PatientUpdate = () => {
           </div>
           {/* Phone */}
           <div>
-            <label className="block font-semibold mb-1 text-gray-700" htmlFor="phone">
+            <label
+              className="block font-semibold mb-1 text-gray-700"
+              htmlFor="phone"
+            >
               Phone
             </label>
             <motion.input
@@ -151,7 +170,10 @@ const PatientUpdate = () => {
           </div>
           {/* Age */}
           <div>
-            <label className="block font-semibold mb-1 text-gray-700" htmlFor="age">
+            <label
+              className="block font-semibold mb-1 text-gray-700"
+              htmlFor="age"
+            >
               Age
             </label>
             <motion.input
@@ -168,7 +190,10 @@ const PatientUpdate = () => {
           </div>
           {/* Gender */}
           <div>
-            <label className="block font-semibold mb-1 text-gray-700" htmlFor="gender">
+            <label
+              className="block font-semibold mb-1 text-gray-700"
+              htmlFor="gender"
+            >
               Gender
             </label>
             <motion.input
@@ -185,7 +210,10 @@ const PatientUpdate = () => {
           </div>
           {/* Blood Group */}
           <div>
-            <label className="block font-semibold mb-1 text-gray-700" htmlFor="bloodGroup">
+            <label
+              className="block font-semibold mb-1 text-gray-700"
+              htmlFor="bloodGroup"
+            >
               Blood Group
             </label>
             <motion.select

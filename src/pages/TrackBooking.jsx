@@ -11,7 +11,9 @@ const TrackBooking = () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/booking/booking?patientId=${user.id}`)
+    fetch(
+      `https://telemedicine-backend-2.onrender.com/api/booking/booking?patientId=${user.id}`
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data) setBooking(data);
@@ -25,7 +27,11 @@ const TrackBooking = () => {
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
   };
 
   const textVariants = {

@@ -57,7 +57,11 @@ const CallPage = () => {
 
   const videoVariants = {
     hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, delay: 0.2 } },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.5, delay: 0.2 },
+    },
   };
 
   // WebRTC and socket logic (unchanged)
@@ -427,27 +431,33 @@ const CallPage = () => {
     if (user && user.role !== "Doctor") {
       return;
     } else {
-      fetch("http://localhost:5000/api/booking/doctor-live", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          doctorId: user.id,
-          status: true,
-          bookingId: roomId,
-        }),
-      });
-    }
-    return () => {
-      user.role === "Doctor" &&
-        fetch("http://localhost:5000/api/booking/doctor-live", {
+      fetch(
+        "https://telemedicine-backend-2.onrender.com/api/booking/doctor-live",
+        {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             doctorId: user.id,
-            status: false,
+            status: true,
             bookingId: roomId,
           }),
-        });
+        }
+      );
+    }
+    return () => {
+      user.role === "Doctor" &&
+        fetch(
+          "https://telemedicine-backend-2.onrender.com/api/booking/doctor-live",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              doctorId: user.id,
+              status: false,
+              bookingId: roomId,
+            }),
+          }
+        );
     };
   }, [roomId]);
 
@@ -530,7 +540,8 @@ const CallPage = () => {
                 className="text-sm sm:text-base max-w-md"
                 variants={videoVariants}
               >
-                Please check your internet connection or wait for the other user to join.
+                Please check your internet connection or wait for the other user
+                to join.
               </motion.p>
               <motion.button
                 onClick={startPollingForRemote}

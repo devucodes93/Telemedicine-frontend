@@ -25,7 +25,9 @@ const Login = () => {
   const fetchRequests = async () => {
     setLoadingRequests(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/doctor-applications");
+      const res = await fetch(
+        "https://telemedicine-backend-2.onrender.com/api/auth/doctor-applications"
+      );
       const data = await res.json();
       setRequests(data.requests || []);
     } catch (err) {
@@ -51,7 +53,10 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/login", formData);
+      const response = await axios.post(
+        "https://telemedicine-backend-2.onrender.com/api/auth/login",
+        formData
+      );
       if (response.data.success) {
         localStorage.setItem("user", JSON.stringify(response.data.user));
         localStorage.setItem("token", response.data.token);
@@ -83,7 +88,11 @@ const Login = () => {
   };
 
   const inputVariants = {
-    focus: { scale: 1.02, borderColor: "#10b981", transition: { duration: 0.3 } },
+    focus: {
+      scale: 1.02,
+      borderColor: "#10b981",
+      transition: { duration: 0.3 },
+    },
   };
 
   const buttonVariants = {
@@ -122,7 +131,11 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           {/* Email */}
-          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+          <motion.div
+            className="relative"
+            whileFocus="focus"
+            variants={inputVariants}
+          >
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <FiMail className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
@@ -138,7 +151,11 @@ const Login = () => {
           </motion.div>
 
           {/* Password */}
-          <motion.div className="relative" whileFocus="focus" variants={inputVariants}>
+          <motion.div
+            className="relative"
+            whileFocus="focus"
+            variants={inputVariants}
+          >
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <FiLock className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
             </div>
@@ -182,7 +199,9 @@ const Login = () => {
           <motion.button
             type="button"
             className="text-emerald-600 font-semibold hover:underline"
-            onClick={() => (window.location.href = "/admin/review-applications")}
+            onClick={() =>
+              (window.location.href = "/admin/review-applications")
+            }
             variants={buttonVariants}
             whileHover="hover"
             whileTap="tap"

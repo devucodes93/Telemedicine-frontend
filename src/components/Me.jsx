@@ -17,7 +17,7 @@ const Me = ({ compact, showDropdown }) => {
     }
 
     axios
-      .get("http://localhost:5000/auth/me", {
+      .get("https://telemedicine-backend-2.onrender.com/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -41,7 +41,11 @@ const Me = ({ compact, showDropdown }) => {
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
   };
 
   const dropdownVariants = {

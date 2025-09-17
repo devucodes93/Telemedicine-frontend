@@ -36,9 +36,11 @@ const DoctorDashboard = () => {
   // Fetch appointments for the doctor
   useEffect(() => {
     if (user?.role === "Doctor") {
-      fetch(`http://localhost:5000/api/booking/doctor?doctorId=${user.id}`)
       fetch(
-        `http://localhost:5000/api/booking/doctor?doctorId=${
+        `https://telemedicine-backend-2.onrender.com/api/booking/doctor?doctorId=${user.id}`
+      );
+      fetch(
+        `https://telemedicine-backend-2.onrender.com/api/booking/doctor?doctorId=${
           user.id || user._id
         }`
       )
@@ -84,19 +86,9 @@ const DoctorDashboard = () => {
     console.log("bookingId", bookingId);
 
     // when doctor enters dashboard
-    fetch("http://localhost:5000/api/booking/doctor-live", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        doctorId: user.id,
-        status: false,
-        bookingId,
-      }),
-    });
-
-    // cleanup (when closing)
-    return () => {
-      fetch("http://localhost:5000/api/booking/doctor-live", {
+    fetch(
+      "https://telemedicine-backend-2.onrender.com/api/booking/doctor-live",
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -104,7 +96,23 @@ const DoctorDashboard = () => {
           status: false,
           bookingId,
         }),
-      });
+      }
+    );
+
+    // cleanup (when closing)
+    return () => {
+      fetch(
+        "https://telemedicine-backend-2.onrender.com/api/booking/doctor-live",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            doctorId: user.id,
+            status: false,
+            bookingId,
+          }),
+        }
+      );
     };
   }, [user, upcomingAppointments]);
 

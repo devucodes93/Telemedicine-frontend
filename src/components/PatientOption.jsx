@@ -6,7 +6,9 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import socket from "../socket";
 
-const Api = axios.create({ baseURL: "http://localhost:5000/api" });
+const Api = axios.create({
+  baseURL: "https://telemedicine-backend-2.onrender.com/api",
+});
 
 const PatientOption = () => {
   const navigate = useNavigate();

@@ -41,7 +41,10 @@ const DoctorUpdate = () => {
     e.preventDefault();
     try {
       // Replace with your backend API endpoint
-      await axios.post("http://localhost:5000/api/doctor/update", form);
+      await axios.post(
+        "https://telemedicine-backend-2.onrender.com/api/doctor/update",
+        form
+      );
       navigate("/me");
     } catch (err) {
       setError(err.response?.data?.message || "Update failed");
@@ -51,11 +54,19 @@ const DoctorUpdate = () => {
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
   };
 
   const inputVariants = {
-    focus: { scale: 1.02, borderColor: "#10b981", transition: { duration: 0.3 } },
+    focus: {
+      scale: 1.02,
+      borderColor: "#10b981",
+      transition: { duration: 0.3 },
+    },
   };
 
   const buttonVariants = {
@@ -86,9 +97,17 @@ const DoctorUpdate = () => {
             { name: "name", type: "text", placeholder: "Name" },
             { name: "email", type: "email", placeholder: "Email" },
             { name: "password", type: "password", placeholder: "Password" },
-            { name: "specialization", type: "text", placeholder: "Specialization" },
+            {
+              name: "specialization",
+              type: "text",
+              placeholder: "Specialization",
+            },
             { name: "phone", type: "text", placeholder: "Phone" },
-            { name: "experience", type: "number", placeholder: "Experience (years)" },
+            {
+              name: "experience",
+              type: "number",
+              placeholder: "Experience (years)",
+            },
             { name: "fee", type: "number", placeholder: "Fee" },
           ].map((field) => (
             <div key={field.name}>

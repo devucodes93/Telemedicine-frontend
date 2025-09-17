@@ -33,7 +33,7 @@ const TrackEmergency = () => {
       const emergencyData = JSON.parse(localStorage.getItem("emergencyCode"));
       try {
         const res = await fetch(
-          `http://localhost:5000/api/emergencies?code=${emergencyData.emergencyCode}`
+          `https://telemedicine-backend-2.onrender.com/api/emergencies?code=${emergencyData.emergencyCode}`
         );
         const data = await res.json();
         setEmergency(data.emergencies);

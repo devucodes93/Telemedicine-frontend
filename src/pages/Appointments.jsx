@@ -19,7 +19,9 @@ const Appointments = () => {
 
   useEffect(() => {
     if (user?.role === "Doctor") {
-      fetch(`http://localhost:5000/api/booking/doctor?doctorId=${user.id}`)
+      fetch(
+        `https://telemedicine-backend-2.onrender.com/api/booking/doctor?doctorId=${user.id}`
+      )
         .then((res) => res.json())
         .then((data) => {
           setAppointments(data.appointments || []);
@@ -32,7 +34,11 @@ const Appointments = () => {
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
   };
 
   const itemVariants = {
@@ -174,11 +180,15 @@ const Appointments = () => {
               <div className="mb-6 w-full text-left text-sm sm:text-base text-gray-700">
                 <div className="mb-2">
                   <span className="font-semibold">{t("Patient")}:</span>{" "}
-                  <span className="text-emerald-600">{selectedAppointment.patientId}</span>
+                  <span className="text-emerald-600">
+                    {selectedAppointment.patientId}
+                  </span>
                 </div>
                 <div className="mb-2">
                   <span className="font-semibold">{t("Date")}:</span>{" "}
-                  <span className="text-emerald-600">{selectedAppointment.date}</span>
+                  <span className="text-emerald-600">
+                    {selectedAppointment.date}
+                  </span>
                 </div>
                 <div className="mb-2">
                   <span className="font-semibold">{t("Time")}:</span>{" "}
@@ -197,7 +207,7 @@ const Appointments = () => {
                   onClick={async () => {
                     setActionLoading(true);
                     await fetch(
-                      `http://localhost:5000/api/booking/cancel/${selectedAppointment._id}`,
+                      `https://telemedicine-backend-2.onrender.com/api/booking/cancel/${selectedAppointment._id}`,
                       { method: "POST" }
                     );
                     setShowModal(false);
@@ -229,7 +239,7 @@ const Appointments = () => {
                       if (!selectedTime || fee <= 0) return;
                       setActionLoading(true);
                       await fetch(
-                        `http://localhost:5000/api/booking/accept/${selectedAppointment._id}`,
+                        `https://telemedicine-backend-2.onrender.com/api/booking/accept/${selectedAppointment._id}`,
                         {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
@@ -272,9 +282,13 @@ const Appointments = () => {
                       <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <TimePicker
                           label={t("SelectTime")}
-                          value={selectedTime ? dayjs(selectedTime, "HH:mm") : null}
+                          value={
+                            selectedTime ? dayjs(selectedTime, "HH:mm") : null
+                          }
                           onChange={(newValue) => {
-                            setSelectedTime(newValue ? newValue.format("HH:mm") : "");
+                            setSelectedTime(
+                              newValue ? newValue.format("HH:mm") : ""
+                            );
                           }}
                           ampm={false}
                           minutesStep={5}

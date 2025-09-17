@@ -19,7 +19,9 @@ const AdminDashboard = () => {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/doctor-applications");
+      const res = await fetch(
+        "https://telemedicine-backend-2.onrender.com/api/auth/doctor-applications"
+      );
       const data = await res.json();
       setRequests(data.requests || []);
     } catch (err) {
@@ -43,14 +45,17 @@ const AdminDashboard = () => {
   const handleReview = async (id, action) => {
     setProcessingId(id);
     try {
-      await fetch("http://localhost:5000/api/doctor/doctor-application-response", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          applicationId: id,
-          action: action === "approve" ? "approve" : "reject",
-        }),
-      });
+      await fetch(
+        "https://telemedicine-backend-2.onrender.com/api/doctor/doctor-application-response",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            applicationId: id,
+            action: action === "approve" ? "approve" : "reject",
+          }),
+        }
+      );
       await fetchRequests();
       toast.success(
         action === "approve"
@@ -68,11 +73,19 @@ const AdminDashboard = () => {
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
   };
 
   const inputVariants = {
-    focus: { scale: 1.02, borderColor: "#10b981", transition: { duration: 0.3 } },
+    focus: {
+      scale: 1.02,
+      borderColor: "#10b981",
+      transition: { duration: 0.3 },
+    },
   };
 
   const buttonVariants = {
@@ -83,7 +96,11 @@ const AdminDashboard = () => {
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-    hover: { scale: 1.03, boxShadow: "0 10px 20px rgba(0, 0, 0, 0.1)", transition: { duration: 0.3 } },
+    hover: {
+      scale: 1.03,
+      boxShadow: "0 10px 20px rgba(0, 0, 0, 0.1)",
+      transition: { duration: 0.3 },
+    },
   };
 
   if (!loggedIn) {
@@ -156,7 +173,9 @@ const AdminDashboard = () => {
       <ToastContainer />
       {/* Header */}
       <header className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Doctor Applications</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+          Doctor Applications
+        </h1>
         <motion.button
           onClick={fetchRequests}
           className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-800 transition-colors"

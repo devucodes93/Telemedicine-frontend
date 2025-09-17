@@ -33,7 +33,9 @@ const Home = ({ hideBooking }) => {
       return;
     }
 
-    fetch(`http://localhost:5000/api/booking/all?patientId=${user.id}`)
+    fetch(
+      `https://telemedicine-backend-2.onrender.com/api/booking/all?patientId=${user.id}`
+    )
       .then((res) => res.json())
       .then((data) => {
         const bookings = Array.isArray(data.bookings)
@@ -363,10 +365,16 @@ const Home = ({ hideBooking }) => {
                 variants={cardVariants}
                 whileHover="hover"
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0, transition: { delay: index * 0.1 } }}
+                whileInView={{
+                  opacity: 1,
+                  y: 0,
+                  transition: { delay: index * 0.1 },
+                }}
                 viewport={{ once: true }}
               >
-                <div className="text-emerald-600 mb-6 flex justify-center">{feature.icon}</div>
+                <div className="text-emerald-600 mb-6 flex justify-center">
+                  {feature.icon}
+                </div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-3 break-words whitespace-normal">
                   {feature.title}
                 </h3>
@@ -464,7 +472,11 @@ const Home = ({ hideBooking }) => {
               variants={cardVariants}
               whileHover="hover"
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0, transition: { delay: index * 0.1 } }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+                transition: { delay: index * 0.1 },
+              }}
               viewport={{ once: true }}
             >
               <div className="flex items-center justify-center h-20 w-20 rounded-full bg-emerald-100 text-emerald-600 mb-4">
@@ -625,7 +637,11 @@ const Home = ({ hideBooking }) => {
                 variants={cardVariants}
                 whileHover="hover"
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0, transition: { delay: index * 0.1 } }}
+                whileInView={{
+                  opacity: 1,
+                  y: 0,
+                  transition: { delay: index * 0.1 },
+                }}
                 viewport={{ once: true }}
               >
                 <div className="flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 text-emerald-600 mb-4">
