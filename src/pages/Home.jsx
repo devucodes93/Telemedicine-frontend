@@ -32,9 +32,10 @@ const Home = ({ hideBooking }) => {
       setIsDoctor(true);
       return;
     }
+    if (!user) return;
 
     fetch(
-      `https://telemedicine-backend-2.onrender.com/api/booking/all?patientId=${user.id}`
+      `https://telemedicine-backend-2.onrender.com/api/booking/all?patientId=${user?.id}`
     )
       .then((res) => res.json())
       .then((data) => {
