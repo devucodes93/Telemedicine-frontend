@@ -1,13 +1,41 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
+import L from "leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import Footer from "../components/Footer";
 import Faq from "../components/Faq";
 import BookDoctor from "../components/BookDoctor";
 import useSocketStore from "../store/socketStore";
+const userIcon = new L.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+  shadowSize: [41, 41],
+});
+
+const greenIcon = new L.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
 
 const Home = ({ hideBooking }) => {
   const [showBook, setShowBook] = useState(false);
+  const [location, setLocation] = useState(null);
+  const [hospitals, setHospitals] = useState([]);
+  const [weather, setWeather] = useState(null);
+  const [showFeatures, setShowFeatures] = useState(false);
   const [hasBooking, setHasBooking] = useState(false);
   const [bookingStatus, setBookingStatus] = useState("");
   const [isDoctor, setIsDoctor] = useState(false);
@@ -60,7 +88,77 @@ const Home = ({ hideBooking }) => {
         setBookingStatus("");
       });
   }, []);
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (err) => console.error("Geolocation error", err)
+    );
+  }, []);
+  useEffect(() => {
+    if (!location) return;
 
+    const fetchHospitals = async () => {
+      try {
+        const radius = 5000; // 5 km
+        const overpassQuery = `
+        [out:json];
+        (
+          node["amenity"="hospital"](around:${radius},${location.lat},${location.lng});
+          way["amenity"="hospital"](around:${radius},${location.lat},${location.lng});
+          relation["amenity"="hospital"](around:${radius},${location.lat},${location.lng});
+        );
+        out center;
+      `;
+        const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(
+          overpassQuery
+        )}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const mapped = data.elements.map((el) => ({
+          name: el.tags.name || "Unnamed Hospital",
+          lat: el.lat || el.center?.lat,
+          lon: el.lon || el.center?.lon,
+        }));
+
+        setHospitals(mapped);
+      } catch (err) {
+        console.error("Failed to fetch nearby hospitals", err);
+      }
+    };
+
+    fetchHospitals();
+  }, [location]);
+
+  useEffect(() => {
+    if (!location) return;
+    const fetchWeather = async () => {
+      const apiKey = "56e35f42138150f30083f38db7197088"; // <- replace this with your key
+      const res = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lng}&units=metric&appid=${apiKey}`
+      );
+      const data = await res.json();
+      setWeather({
+        temp: data.main.temp,
+        condition: data.weather[0].main,
+        location: data.name,
+      });
+    };
+    fetchWeather();
+  }, [location]);
+
+  const getWeatherSuggestion = () => {
+    if (!weather) return "Weather data not available";
+    const { temp, condition } = weather;
+    if (condition.includes("Rain"))
+      return "Carry an umbrella and avoid outdoor exercise.";
+    if (temp > 35) return "Stay hydrated and avoid prolonged sun exposure.";
+    if (temp < 10)
+      return "Wear warm clothes and avoid staying outside for long.";
+    return "Normal conditions. Proceed with your activities normally.";
+  };
   // Animation variants
   const sectionVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -85,7 +183,16 @@ const Home = ({ hideBooking }) => {
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
     exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } },
   };
-
+  useEffect(() => {
+    if (showFeatures || showBook) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showFeatures, showBook]);
   return (
     <div className="bg-white text-gray-700">
       {/* Hero Section */}
@@ -166,6 +273,16 @@ const Home = ({ hideBooking }) => {
                   {t("TrackBooking")}
                 </motion.button>
               )}
+              <motion.button
+                className="mt-4 sm:mt-6 bg-white text-black
+ px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-lg w-40 sm:w-44"
+                onClick={() => setShowFeatures(true)}
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                {t("Features")}
+              </motion.button>
               {showBook && (
                 <motion.div
                   className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
@@ -190,6 +307,101 @@ const Home = ({ hideBooking }) => {
                         window.location.reload();
                       }}
                     />
+                  </motion.div>
+                </motion.div>
+              )}
+              {showFeatures && (
+                <motion.div
+                  className="fixed inset-0 bg-black/40 z-50 flex mt-20 items-center justify-center p-4"
+                  variants={modalVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                >
+                  <motion.div
+                    className="bg-white rounded-xl shadow-2xl p-6 relative max-w-4xl w-full space-y-6 overflow-y-auto"
+                    variants={modalVariants}
+                  >
+                    {/* Close Button */}
+                    <button
+                      className="absolute top-2 right-2 text-emerald-500 hover:text-emerald-700 text-2xl font-bold"
+                      onClick={() => setShowFeatures(false)}
+                    >
+                      &times;
+                    </button>
+
+                    {/* Map Section */}
+                    <div>
+                      <h2 className="text-xl font-semibold text-emerald-600 mb-2">
+                        Nearby Hospitals
+                      </h2>
+
+                      <p className="text-sm">
+                        Click markers to see hospital names.
+                      </p>
+                      {location ? (
+                        <MapContainer
+                          center={[location.lat, location.lng]}
+                          zoom={13}
+                          scrollWheelZoom={false}
+                          style={{ height: "300px", width: "100%" }}
+                        >
+                          <TileLayer
+                            attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                          />
+                          <Marker
+                            position={[location.lat, location.lng]}
+                            icon={userIcon}
+                          >
+                            <Popup>Your Location</Popup>
+                          </Marker>
+                          {hospitals.map((h, i) => (
+                            <Marker
+                              key={i}
+                              position={[h.lat, h.lon]}
+                              icon={greenIcon}
+                            >
+                              <Popup>{h.name}</Popup>
+                            </Marker>
+                          ))}
+                        </MapContainer>
+                      ) : (
+                        <p className="text-gray-700">Fetching location...</p>
+                      )}
+                    </div>
+
+                    {/* Weather Section */}
+                    <div>
+                      <h2 className="text-xl font-semibold text-emerald-600 mb-2">
+                        Current Weather
+                      </h2>
+                      {weather ? (
+                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                          <div className="flex-1 bg-emerald-50 p-4 rounded-lg shadow-inner">
+                            <p className="text-gray-700 font-medium">
+                              Location: {weather.location}
+                            </p>
+                            <p className="text-gray-700 font-medium">
+                              Temperature: {weather.temp}°C
+                            </p>
+                            <p className="text-gray-700 font-medium">
+                              Condition: {weather.condition}
+                            </p>
+                          </div>
+                          <div className="flex-1 bg-emerald-100 p-4 rounded-lg shadow-inner">
+                            <p className="text-gray-700 font-medium mb-2">
+                              Suggestion:
+                            </p>
+                            <p className="text-gray-700">
+                              {getWeatherSuggestion()}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-gray-700">Fetching weather...</p>
+                      )}
+                    </div>
                   </motion.div>
                 </motion.div>
               )}

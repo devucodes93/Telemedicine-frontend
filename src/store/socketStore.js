@@ -4,6 +4,8 @@ import { create } from "zustand";
 const BASE_URL = "https://telemedicine-backend-2.onrender.com/";
 
 const useSocketStore = create((set, get) => ({
+  connectionStatus: "idle", // idle | connecting | waiting | connected | error
+  connectionTimer: null,
   socket: null,
   isConnected: false,
   roomId: null,
@@ -60,7 +62,6 @@ const useSocketStore = create((set, get) => ({
       return;
     }
     let eventName, payload;
-    // Normalize role comparison for both 'Doctor' and 'doctor'
     const isDoctor = String(user.role).toLowerCase() === "doctor";
     if (isDoctor) {
       eventName = "doctor-join-room";
@@ -70,24 +71,52 @@ const useSocketStore = create((set, get) => ({
         socketId: socket.id,
       };
     } else {
-      console.log("patient joining room");
       eventName = "patient-join-room";
       payload = {
         patientId: user.id || user._id,
-        doctorId: doctorIdRaw, // You may need to fetch this from booking context
+        doctorId: doctorIdRaw,
         roomId,
         socketId: socket.id,
       };
     }
-    socket.emit(eventName, payload);
     set({ roomId: roomId });
     get().roomJoined();
-    console.log("🔗 Joining room:", roomId, payload);
+    const retryDelay = 4000;
+
+    function tryJoin() {
+      if (!get().socket || !get().socket.connected || !get().socket.id) {
+        console.warn(`🔄 Socket not ready, retrying join...`);
+        setTimeout(tryJoin, retryDelay);
+        return;
+      }
+      get().socket.emit(eventName, payload);
+      console.log("🔗 Attempting to join room:", roomId, payload);
+    }
+    tryJoin();
+
+    // Listen for connection events
+    get().socket?.off("connection-established");
+    get().socket?.off("waiting");
+    get().socket?.off("join-error");
+
+    const handleWaiting = (data) => {
+      console.log("⏳ Waiting for doctor to join...");
+      setTimeout(tryJoin, retryDelay);
+    };
+    const handleEstablished = (data) => {
+      console.log("✅ Connection established:", data);
+    };
+    const handleJoinError = (data) => {
+      console.error("❌ Join error:", data.message);
+      setTimeout(tryJoin, retryDelay);
+    };
+    get().socket?.on("connection-established", handleEstablished);
+    get().socket?.on("waiting", handleWaiting);
+    get().socket?.on("join-error", handleJoinError);
   },
   roomJoined: () => {
     const socket = get().socket;
     if (!socket) return;
-
     socket.on("room-joined", (data) => {
       console.log("✅ Room joined:", data);
       set({ roomId: data.roomId });

@@ -22,6 +22,7 @@ import PatientOption from "./components/PatientOption";
 import AdminDashboard from "./pages/AdminDashboard";
 import Finding from "./pages/Finding";
 import TrackEmergency from "./pages/TrackEmergency";
+import { ToastContainer } from "react-toastify";
 
 const App = () => {
   const { connectSocket } = useSocketStore();
@@ -220,6 +221,7 @@ const App = () => {
 
             {/* Close button top-right */}
             <button
+              type="button"
               className="absolute top-3 right-3 px-2 py-1 bg-gray-200 rounded-full hover:bg-gray-300 transition"
               onClick={() => setIsPopupVisible(false)}
             >
@@ -235,6 +237,7 @@ const App = () => {
                 Cancel
               </button>{" "}
               <button
+                type="button"
                 className="flex-1 px-6 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-green-700 transition"
                 onClick={async () => {
                   console.log("Accepted");
@@ -312,7 +315,8 @@ const App = () => {
       )}
 
       {/* Only show Nav if not on /doctor and not doctor role */}
-      {!(role === "Doctor" && location.pathname === "/doctor") && <Nav />}
+      {!(role === "Doctor" && location.pathname === "/doctor") &&
+        !location.pathname.startsWith("/call/") && <Nav />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -379,6 +383,7 @@ const App = () => {
         <Route path="/track-emergency" element={<TrackEmergency />} />
         {/* Removed erroneous React.lazy route for /call/:id */}
       </Routes>
+      <ToastContainer />
     </div>
   );
 };
