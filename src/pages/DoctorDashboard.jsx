@@ -139,7 +139,7 @@ const DoctorDashboard = () => {
       <div className="fixed top-6 right-24 z-50">
         <select
           value={language}
-          onChange={e => setLanguage(e.target.value)}
+          onChange={(e) => setLanguage(e.target.value)}
           className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-full p-2 shadow border border-gray-300 dark:border-gray-700 text-xs"
         >
           <option value="en">English</option>

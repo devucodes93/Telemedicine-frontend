@@ -14,6 +14,7 @@ import useSocketStore from "../store/socketStore";
 import { toast } from "react-toastify";
 
 const CallPage = () => {
+  const [showLocalMirror, setShowLocalMirror] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
   const { id } = useParams();
   const {
@@ -115,8 +116,21 @@ const CallPage = () => {
         });
       } else {
         console.log("ICE candidate event but no candidate (end of candidates)");
+        // If no remote video after ICE candidates, start timeout to show local mirror
+        setTimeout(() => {
+          if (!remoteStreamAvailable) {
+            setShowLocalMirror(true);
+          }
+        }, 4000); // 4 seconds after ICE end
       }
     };
+    // If remote video doesn't arrive in 8 seconds, show local mirror
+    const timeoutId = setTimeout(() => {
+      if (!remoteStreamAvailable) {
+        setShowLocalMirror(true);
+      }
+    }, 8000);
+    return () => clearTimeout(timeoutId);
     return () => {
       if (peer) {
         peer.ontrack = null;
@@ -538,62 +552,75 @@ const CallPage = () => {
 
       {/* Video Area */}
       <div className="relative flex-grow w-full max-w-5xl mx-auto h-[50vh] sm:h-[70vh]">
-        <motion.video
-          ref={remoteRef}
-          autoPlay
-          playsInline
-          className="w-full h-full object-cover rounded-lg sm:rounded-xl bg-emerald-900"
-          variants={videoVariants}
-        />
-        <motion.video
-          ref={localRef}
-          autoPlay
-          muted
-          playsInline
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          className="w-24 h-32 sm:w-32 sm:h-48 object-cover rounded-lg sm:rounded-xl transform scale-x-[-1] absolute shadow-md cursor-move z-10 border-2 border-emerald-500"
-          style={{ left: `${position.x}px`, top: `${position.y}px` }}
-          variants={videoVariants}
-        />
-        <AnimatePresence>
-          {!remoteStreamAvailable && (
-            <motion.div
-              className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-60 text-white text-center p-4"
-              variants={overlayVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              <motion.h2
-                className="text-lg sm:text-2xl font-bold mb-2"
-                variants={videoVariants}
-              >
-                Waiting for user to join...
-              </motion.h2>
-              <motion.p
-                className="text-xs sm:text-base max-w-md"
-                variants={videoVariants}
-              >
-                Please check your internet connection or wait for the other user
-                to join.
-              </motion.p>
-              <motion.button
-                onClick={startPollingForRemote}
-                className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all text-sm sm:text-base"
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-              >
-                Retry
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {showLocalMirror ? (
+          <motion.video
+            ref={localRef}
+            autoPlay
+            muted
+            playsInline
+            className="w-full h-full object-cover rounded-lg sm:rounded-xl bg-emerald-900 transform scale-x-[-1]"
+            variants={videoVariants}
+          />
+        ) : (
+          <>
+            <motion.video
+              ref={remoteRef}
+              autoPlay
+              playsInline
+              className="w-full h-full object-cover rounded-lg sm:rounded-xl bg-emerald-900"
+              variants={videoVariants}
+            />
+            <motion.video
+              ref={localRef}
+              autoPlay
+              muted
+              playsInline
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="w-24 h-32 sm:w-32 sm:h-48 object-cover rounded-lg sm:rounded-xl transform scale-x-[-1] absolute shadow-md cursor-move z-10 border-2 border-emerald-500"
+              style={{ left: `${position.x}px`, top: `${position.y}px` }}
+              variants={videoVariants}
+            />
+            <AnimatePresence>
+              {!remoteStreamAvailable && (
+                <motion.div
+                  className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-60 text-white text-center p-4"
+                  variants={overlayVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                >
+                  <motion.h2
+                    className="text-lg sm:text-2xl font-bold mb-2"
+                    variants={videoVariants}
+                  >
+                    Waiting for user to join...
+                  </motion.h2>
+                  <motion.p
+                    className="text-xs sm:text-base max-w-md"
+                    variants={videoVariants}
+                  >
+                    Please check your internet connection or wait for the other
+                    user to join.
+                  </motion.p>
+                  <motion.button
+                    onClick={startPollingForRemote}
+                    className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all text-sm sm:text-base"
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    Retry
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        )}
       </div>
 
       {/* Controls Bar */}
