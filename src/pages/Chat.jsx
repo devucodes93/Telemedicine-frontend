@@ -112,6 +112,28 @@ const Chat = () => {
     setInput("");
 
     const wordCount = userMessage.split(/\s+/).length;
+    const language = localStorage.getItem("siteLanguage") || "English";
+    if (language === "hi") {
+      language = "Hindi";
+
+    }
+    else if (language === "kn") {
+      language = "Kannada";
+    }
+
+    else if (language === "en") {
+      language = "English";
+    } else if (language === "mr") {
+      language = 'mr'
+    } else if (language === "ta") {
+      language = "Tamil";
+    }
+    else if (language === "te") {
+      language = "Telugu";
+    }
+    else {
+      language = "English";
+    }
 
     const systemInstruction = `You are a professional healthcare assistant.
 Only provide health-related advice, tips, or guidance.

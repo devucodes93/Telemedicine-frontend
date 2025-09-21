@@ -135,6 +135,19 @@ const DoctorDashboard = () => {
       }`}
       style={{ minHeight: "100vh" }}
     >
+      {/* Language Selector */}
+      <div className="fixed top-6 right-24 z-50">
+        <select
+          value={language}
+          onChange={e => setLanguage(e.target.value)}
+          className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-full p-2 shadow border border-gray-300 dark:border-gray-700 text-xs"
+        >
+          <option value="en">English</option>
+          <option value="hi">हिन्दी</option>
+          <option value="kn">ಕನ್ನಡ</option>
+          {/* Add more languages as needed */}
+        </select>
+      </div>
       {/* Theme Toggle Button */}
       <button
         className="fixed bottom-6 right-6 z-50 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-full p-2 shadow-lg border border-gray-300 dark:border-gray-700 text-xs hover:bg-gray-300 dark:hover:bg-gray-700 transition"
@@ -202,7 +215,7 @@ const DoctorDashboard = () => {
                         {appointment.patientAvatar ? (
                           <img
                             src={appointment.patientAvatar}
-                            alt="avatar"
+                            alt={t("patientName")}
                             className="w-14 h-14 rounded-full border object-cover shadow-sm"
                           />
                         ) : (
@@ -217,20 +230,20 @@ const DoctorDashboard = () => {
                           </p>
                           <p className="flex items-center gap-2 text-sm text-gray-600 truncate">
                             <FiMail className="text-gray-400" />
-                            {appointment.patientEmail}
+                            {t("email")}: {appointment.patientEmail}
                           </p>
                           <p className="flex items-center gap-2 text-sm text-gray-600 truncate">
                             <FiPhone className="text-gray-400" />
-                            {appointment.patientPhone}
+                            {t("phone")}: {appointment.patientPhone}
                           </p>
                           <div className="flex flex-col sm:flex-row sm:gap-6 mt-2 text-sm text-gray-600">
                             <p className="flex items-center gap-2">
                               <FiCalendar className="text-gray-400" />
-                              {appointment.date}
+                              {t("date")}: {appointment.date}
                             </p>
                             <p className="flex items-center gap-2 mt-1 sm:mt-0">
                               <FiClock className="text-gray-400" />
-                              {appointment.reservedTime}
+                              {t("time")}: {appointment.reservedTime}
                             </p>
                           </div>
                         </div>
