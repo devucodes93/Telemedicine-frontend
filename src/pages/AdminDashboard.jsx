@@ -46,7 +46,7 @@ const AdminDashboard = () => {
     setProcessingId(id);
     try {
       await fetch(
-        "https://telemedicine-backend-2.onrender.com/api/doctor/doctor-application-response",
+        "http://localhost:5000/api/doctor/doctor-application-response",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -24,6 +24,7 @@ import Finding from "./pages/Finding";
 import TrackEmergency from "./pages/TrackEmergency";
 import { ToastContainer } from "react-toastify";
 import Chat from "./pages/Chat";
+import Loading from "./components/Loading";
 
 const App = () => {
   const { connectSocket } = useSocketStore();
@@ -147,7 +148,16 @@ const App = () => {
     }
   }, [isPopupVisible]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen w-screen font-bold text-xl flex-col ">
+        {" "}
+        <div >
+          <Loading  />
+        </div>
+        <div> Loading...</div>
+      </div>
+    );
 
   return (
     <div>
@@ -378,7 +388,7 @@ const App = () => {
         <Route path="/call" element={<CallPageLoad />} />
         <Route path="/call/:id" element={<CallPage />} />
         <Route path="/call/:id/active" element={<CallPage />} />
-  <Route path="/chat" element={<Chat />} />
+        <Route path="/chat" element={<Chat />} />
         <Route path="/admin/review-applications" element={<AdminDashboard />} />
         <Route path="/waiting" element={<Finding />} />
         <Route path="/track-emergency" element={<TrackEmergency />} />
