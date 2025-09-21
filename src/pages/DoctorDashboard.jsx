@@ -30,7 +30,7 @@ const DoctorDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768); // open by default on md+
   const [doctorLocation, setDoctorLocation] = useState(null);
   const [nearbyHospitals, setNearbyHospitals] = useState([]);
 
