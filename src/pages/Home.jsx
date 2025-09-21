@@ -193,8 +193,82 @@ const Home = ({ hideBooking }) => {
       document.body.style.overflow = "";
     };
   }, [showFeatures, showBook]);
+  const text = " TELECURE HELP ";
+  // added spaces for balance
+  const chars = text.split("");
+  const angle = 360 / chars.length;
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShow(true), 3000); // 3 sec delay
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="bg-white text-gray-700">
+      {!isDoctor && (
+        <button
+          onClick={() => {
+            window.location.href = "/chat";
+          }}
+          className={`
+        group fixed bottom-4 right-4 
+        w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 
+        rounded-full bg-[#5865f2] text-white 
+        grid place-content-center overflow-hidden 
+        transition-all duration-700 ease-out
+        hover:bg-green-400 hover:scale-105 active:scale-95 
+        z-50
+        ${
+          show
+            ? "translate-x-0 translate-y-0 opacity-100"
+            : "translate-x-20 translate-y-20 opacity-0"
+        }
+      `}
+        >
+          {/* Rotating Text */}
+          <p className="absolute inset-0 animate-[spin_10s_linear_infinite] text-[9px] sm:text-[10px] md:text-[11px] font-semibold tracking-wider">
+            {chars.map((char, i) => (
+              <span
+                key={i}
+                style={{ transform: `rotate(${i * angle}deg)` }}
+                className="absolute inset-1"
+              >
+                {char}
+              </span>
+            ))}
+          </p>
+
+          {/* Center Circle */}
+          <div
+            className="
+          relative 
+          w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 
+          flex items-center justify-center 
+          rounded-full bg-[#212121] text-[#5865f2] 
+          overflow-hidden
+        "
+          >
+            {/* Logo / Icon */}
+            <img
+              src="/assets/logo4.svg"
+              alt="Logo"
+              className="h-10 sm:h-10 w-5 sm:w-5"
+            />
+
+            {/* Copy Icon */}
+            <svg
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4 sm:w-5 sm:h-5 absolute translate-x-[-150%] translate-y-[150%] transition-transform duration-300 delay-100 group-hover:translate-x-0 group-hover:translate-y-0"
+            >
+              <path d="M13.545 2.907a13.227..."></path>
+            </svg>
+          </div>
+        </button>
+      )}
+
       {/* Hero Section */}
       <motion.div
         className="relative bg-[url('/assets/banner-image.jpg')] bg-cover bg-center min-h-screen flex flex-col justify-center"

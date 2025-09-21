@@ -23,6 +23,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Finding from "./pages/Finding";
 import TrackEmergency from "./pages/TrackEmergency";
 import { ToastContainer } from "react-toastify";
+import Chat from "./pages/Chat";
 
 const App = () => {
   const { connectSocket } = useSocketStore();
@@ -377,7 +378,7 @@ const App = () => {
         <Route path="/call" element={<CallPageLoad />} />
         <Route path="/call/:id" element={<CallPage />} />
         <Route path="/call/:id/active" element={<CallPage />} />
-
+  <Route path="/chat" element={<Chat />} />
         <Route path="/admin/review-applications" element={<AdminDashboard />} />
         <Route path="/waiting" element={<Finding />} />
         <Route path="/track-emergency" element={<TrackEmergency />} />
